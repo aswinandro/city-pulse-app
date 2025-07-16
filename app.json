@@ -1,0 +1,71 @@
+{
+  "expo": {
+    "name": "City Pulse",
+    "slug": "city-pulse-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#3B82F6"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.citypulse.app",
+      "buildNumber": "1",
+      "deploymentTarget": "13.4",
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Use Face ID to authenticate and access your account securely.",
+        "NSLocationWhenInUseUsageDescription": "This app uses location to find events near you.",
+        "UIBackgroundModes": ["background-fetch", "background-processing"]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#3B82F6"
+      },
+      "package": "com.citypulse.app",
+      "versionCode": 1,
+      "compileSdkVersion": 34,
+      "targetSdkVersion": 34,
+      "minSdkVersion": 23,
+      "permissions": [
+        "USE_FINGERPRINT",
+        "USE_BIOMETRIC",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "INTERNET",
+        "ACCESS_NETWORK_STATE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-local-authentication",
+      [
+        "expo-localization",
+        {
+          "supportsRTL": true
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "turboModules": true
+    },
+    "scheme": "city-pulse",
+    "extra": {
+      "router": {
+        "origin": false
+      }
+    }
+  }
+}
