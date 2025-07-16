@@ -9,11 +9,12 @@ import {
   onAuthStateChanged,
   type User,
 } from "firebase/auth"
-import { auth } from "@/services/firebase"
-import { StorageService } from "@/services/StorageService"
-import type { UserProfile } from "@/types/User"
+import { auth } from "../services/firebase"
+import { StorageService } from "../services/StorageService"
+import type { UserProfile } from "../types/User"
 
-interface AuthContextType {
+// Export the interface so it can be imported by other files
+export interface AuthContextType {
   readonly user: User | null
   readonly userProfile: UserProfile | null
   readonly loading: boolean

@@ -2,7 +2,7 @@
 
 import { Tabs } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
-import { useLanguage } from "@/hooks/useLanguage" // Corrected import path
+import { useLanguage } from "../../src/hooks/useLanguage" // Corrected import path
 
 export default function TabLayout() {
   const { t } = useLanguage()

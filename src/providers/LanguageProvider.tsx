@@ -1,15 +1,14 @@
 "use client"
 
-import { useContext } from "react"
-
 import type { ReactNode } from "react"
-import { createContext, useState, useEffect, useCallback } from "react"
+import { createContext, useState, useEffect, useCallback, useContext } from "react" // Added useContext
 import { I18nManager } from "react-native"
 import { useTranslation } from "react-i18next"
 import AsyncStorage from "@react-native-async-storage/async-storage"
-import type i18n from "@/i18n/config" // Import i18n instance
+import type i18n from "../i18n/config" // Import i18n instance
 
-interface LanguageContextType {
+// Export the interface so it can be imported by other files
+export interface LanguageContextType {
   readonly language: string
   readonly isRTL: boolean
   readonly toggleLanguage: () => void
