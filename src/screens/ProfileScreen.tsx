@@ -3,9 +3,9 @@
 import { View, Text, TouchableOpacity, Alert } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons"
-import { useAuth } from "@/hooks/useAuth" // Corrected import path
-import { useLanguage } from "@/hooks/useLanguage" // Corrected import path
-import LanguageToggle from "@/components/common/LanguageToggle"
+import { useAuth } from "../hooks/useAuth" // Corrected import path
+import { useLanguage } from "../hooks/useLanguage" // Corrected import path
+import LanguageToggle from "../components/common/LanguageToggle"
 
 export default function ProfileScreen() {
   const { user, logout } = useAuth()

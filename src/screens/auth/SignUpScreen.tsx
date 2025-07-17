@@ -2,9 +2,9 @@
 
 import { useState } from "react"
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native"
-import { useAuth } from "@/hooks/useAuth" // Corrected import path
-import { useLanguage } from "@/hooks/useLanguage" // Corrected import path
-import LoadingSpinner from "@/components/common/LoadingSpinner"
+import { useAuth } from "../../hooks/useAuth" // Corrected import path
+import { useLanguage } from "../../hooks/useLanguage" // Corrected import path
+import LoadingSpinner from "../../components/common/LoadingSpinner"
 
 export default function SignUpScreen({ navigation }: any) {
   const [email, setEmail] = useState("")

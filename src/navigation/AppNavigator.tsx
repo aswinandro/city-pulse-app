@@ -20,7 +20,7 @@ const Tab = createBottomTabNavigator()
 
 function AuthNavigator() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }} id={undefined}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
     </Stack.Navigator>
@@ -52,6 +52,7 @@ function MainTabNavigator() {
         tabBarInactiveTintColor: "gray",
         headerShown: false,
       })}
+      id={undefined}
     >
       <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: t("home") }} />
       <Tab.Screen name="Favorites" component={FavoritesScreen} options={{ tabBarLabel: t("favorites") }} />
@@ -68,7 +69,7 @@ export default function AppNavigator() {
   }
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }} id={undefined}>
       {!user ? (
         <Stack.Screen name="Auth" component={AuthNavigator} />
       ) : (

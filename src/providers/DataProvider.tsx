@@ -2,11 +2,11 @@
 
 import type { ReactNode } from "react"
 import { createContext, useContext, useState, useCallback, useEffect } from "react"
-import { StorageService } from "@/services/StorageService"
-import { searchEventsAPI } from "@/services/ticketmaster"
-import { getSampleEvents } from "@/services/DataSeeder"
-import { useAuth } from "@/providers/AuthProvider"
-import type { Event } from "@/types/Event"
+import { StorageService } from "../services/StorageService"
+import { searchEventsAPI } from "../services/ticketmaster"
+import { getSampleEvents } from "../services/DataSeeder"
+import { useAuth } from "../providers/AuthProvider"
+import type { Event } from "../types/Event"
 
 interface DataContextType {
   readonly events: readonly Event[]

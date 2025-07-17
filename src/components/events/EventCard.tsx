@@ -3,10 +3,10 @@
 import { useState } from "react"
 import { View, Text, Image, TouchableOpacity } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
-import { useFavorites } from "@/hooks/useFavorites"
-import { useLanguage } from "@/hooks/useLanguage"
-import type { Event } from "@/types/Event"
-import { formatDate } from "@/utils/formatters"
+import { useFavorites } from "../../hooks/useFavorites"
+import { useLanguage } from "../../hooks/useLanguage"
+import type { Event } from "../../types/Event"
+import { formatDate } from "../../utils/formatters"
 
 interface EventCardProps {
   readonly event: Event

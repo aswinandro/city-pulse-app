@@ -2,7 +2,7 @@
 
 import { View, TextInput, TouchableOpacity, Text } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
-import { useLanguage } from "@/hooks/useLanguage"
+import { useLanguage } from "../../hooks/useLanguage"
 
 interface SearchBarProps {
   readonly searchQuery: string

@@ -4,7 +4,7 @@ import { useEffect } from "react"
 import { View, Text } from "react-native"
 import { useRouter } from "expo-router"
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withDelay } from "react-native-reanimated"
-import { useAuth } from "@/providers/AuthProvider"
+import { useAuth } from "../src/providers/AuthProvider"
 
 export default function SplashScreen() {
   const { user, loading, checkAuthState } = useAuth()

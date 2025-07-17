@@ -3,14 +3,14 @@
 import { useState, useEffect } from "react"
 import { View, Text, ScrollView, RefreshControl, TouchableOpacity } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
-import SearchBar from "@/components/home/SearchBar"
-import EventCard from "@/components/events/EventCard"
-import LanguageToggle from "@/components/common/LanguageToggle"
-import LoadingSpinner from "@/components/common/LoadingSpinner"
-import { useEvents } from "@/hooks/useEvents" // Corrected import path
-import { useLanguage } from "@/hooks/useLanguage" // Corrected import path
-import { useAuth } from "@/providers/AuthProvider" // Corrected import path
-import type { Event } from "@/types/Event"
+import SearchBar from "../components/home/SearchBar"
+import EventCard from "../components/events/EventCard"
+import LanguageToggle from "../components/common/LanguageToggle"
+import LoadingSpinner from "../components/common/LoadingSpinner"
+import { useEvents } from "../hooks/useEvents" // Corrected import path
+import { useLanguage } from "../hooks/useLanguage" // Corrected import path
+import { useAuth } from "../providers/AuthProvider" // Corrected import path
+import type { Event } from "../types/Event"
 
 export default function HomeScreen({ navigation }: any) {
   const [searchQuery, setSearchQuery] = useState("")

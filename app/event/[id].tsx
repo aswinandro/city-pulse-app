@@ -6,10 +6,10 @@ import { SafeAreaView } from "react-native-safe-area-context"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import MapView, { Marker } from "react-native-maps"
-import { useFavorites } from "@/hooks/useFavorites"
-import { useLanguage } from "@/hooks/useLanguage"
-import type { Event } from "@/types/Event"
-import { formatDate, formatPrice } from "@/utils/formatters"
+import { useFavorites } from "../../src/hooks/useFavorites"
+import { useLanguage } from "../../src/hooks/useLanguage"
+import type { Event } from "../../src/types/Event"
+import { formatDate, formatPrice } from "../../src/utils/formatters"
 
 export default function EventDetailScreen() {
   const { event: eventParam } = useLocalSearchParams()

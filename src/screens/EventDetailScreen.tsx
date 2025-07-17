@@ -5,10 +5,10 @@ import { View, Text, ScrollView, Image, TouchableOpacity, Linking } from "react-
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons"
 import MapView, { Marker } from "react-native-maps"
-import { useFavorites } from "@/hooks/useFavorites"
-import { useLanguage } from "@/hooks/useLanguage"
-import type { Event } from "@/types/Event"
-import { formatDate, formatPrice } from "@/utils/formatters"
+import { useFavorites } from "../hooks/useFavorites"
+import { useLanguage } from "../hooks/useLanguage"
+import type { Event } from "../types/Event"
+import { formatDate, formatPrice } from "../utils/formatters"
 
 interface EventDetailScreenProps {
   route: {

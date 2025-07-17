@@ -3,10 +3,10 @@
 import { View, Text, ScrollView } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useRouter } from "expo-router"
-import { useFavorites } from "@/hooks/useFavorites" // Corrected import path
-import { useLanguage } from "@/hooks/useLanguage" // Corrected import path
-import EventCard from "@/components/events/EventCard"
-import type { Event } from "@/types/Event"
+import { useFavorites } from "../../src/hooks/useFavorites" // Corrected import path
+import { useLanguage } from "../../src/hooks/useLanguage" // Corrected import path
+import EventCard from "../../src/components/events/EventCard"
+import type { Event } from "../../src/types/Event"
 
 export default function FavoritesScreen() {
   const { favorites } = useFavorites()

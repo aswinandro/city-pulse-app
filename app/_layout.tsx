@@ -5,12 +5,12 @@ import { Stack } from "expo-router"
 import { StatusBar } from "expo-status-bar"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { I18nextProvider } from "react-i18next"
-import { AuthProvider } from "@/providers/AuthProvider"
-import { DataProvider } from "@/providers/DataProvider"
-import { LanguageProvider } from "@/providers/LanguageProvider"
-import i18n from "@/i18n/config"
-import { seedInitialData } from "@/services/DataSeeder"
-import "../global.css"
+import { AuthProvider } from "../src/providers/AuthProvider"
+import { DataProvider } from "../src/providers/DataProvider"
+import { LanguageProvider } from "../src/providers/LanguageProvider"
+import i18n from "../src/i18n/config"
+import { seedInitialData } from "../src/services/DataSeeder"
+import '../global.css'
 
 export default function RootLayout() {
   useEffect(() => {

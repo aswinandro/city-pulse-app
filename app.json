@@ -62,6 +62,7 @@
       "turboModules": true
     },
     "scheme": "city-pulse",
+    "deepLinking": true,
     "extra": {
       "router": {
         "origin": false

@@ -1,7 +1,7 @@
 "use client"
 
 import { TouchableOpacity, Text } from "react-native"
-import { useLanguage } from "@/hooks/useLanguage"
+import { useLanguage } from "../../hooks/useLanguage"
 
 export default function LanguageToggle() {
   const { language, toggleLanguage } = useLanguage()

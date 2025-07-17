@@ -3,7 +3,7 @@
 import { useEffect } from "react"
 import { View, Text } from "react-native"
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withDelay } from "react-native-reanimated"
-import { useAuth } from "@/providers/AuthProvider" // Corrected import path
+import { useAuth } from "../providers/AuthProvider" // Corrected import path
 
 export default function SplashScreen() {
   const { checkAuthState } = useAuth()

@@ -4,10 +4,10 @@ import { useState } from "react"
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native"
 import { Link } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
-import { useAuth } from "@/providers/AuthProvider" // Corrected import path
-import { useBiometric } from "@/hooks/useBiometric" // Corrected import path
-import { useLanguage } from "@/hooks/useLanguage" // Corrected import path
-import LoadingSpinner from "@/components/common/LoadingSpinner"
+import { useAuth } from "../../src/providers/AuthProvider" // Corrected import path
+import { useBiometric } from "../../src/hooks/useBiometric" // Corrected import path
+import { useLanguage } from "../../src/hooks/useLanguage" // Corrected import path
+import LoadingSpinner from "../../src/components/common/LoadingSpinner"
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("")
