@@ -83,7 +83,7 @@ interface UserProfile {
 | Layer | Technology |
 |-------|------------|
 | **Framework** | React Native (Expo SDK 53) |
-| **Navigation** | React Navigation 6 |
+| **Navigation** | Expo Router |
 | **State Management** | React Context API + Bridge Pattern |
 | **Styling** | NativeWind (Tailwind CSS) |
 | **Animations** | React Native Reanimated |
@@ -107,7 +107,7 @@ interface UserProfile {
 
 1. **Clone the repository**
    \`\`\`bash
-   git clone https://github.com/yourusername/city-pulse-app.git
+   git clone https://github.com/aswinandro/city-pulse-app.git
    cd city-pulse-app
    \`\`\`
 
@@ -222,10 +222,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- Expo team for the excellent development platform
-- Firebase for authentication services
-- Ticketmaster for events API
-- React Native community for amazing libraries
 
 ---
 
