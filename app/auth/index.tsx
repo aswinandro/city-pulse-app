@@ -1,7 +1,15 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native"
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Alert,
+  StyleSheet,
+  Platform,
+} from "react-native"
 import { Link } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
 import { useAuth } from "../../src/providers/AuthProvider"
@@ -9,6 +17,8 @@ import { useBiometric } from "../../src/hooks/useBiometric"
 import { useLanguage } from "../../src/hooks/useLanguage"
 import LoadingSpinner from "../../src/components/common/LoadingSpinner"
 import LanguageToggle from "../../src/components/common/LanguageToggle"
+import { LinearGradient } from "expo-linear-gradient"
+import { BlurView } from "expo-blur"
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("")
@@ -24,7 +34,6 @@ export default function LoginScreen() {
   } = useBiometric()
   const { t, isRTL } = useLanguage()
 
-  // Pre-fill email if biometric credentials are saved
   useEffect(() => {
     const loadSavedEmail = async () => {
       if (hasSavedCredentials) {
@@ -53,7 +62,6 @@ export default function LoginScreen() {
     try {
       await signIn(email, password)
 
-      // Ask user if they want to save credentials for biometric login
       if (isBiometricAvailable && !hasSavedCredentials) {
         Alert.alert("Enable Biometric Login?", "Would you like to enable biometric login for faster access?", [
           { text: "Not Now", style: "cancel" },
@@ -71,10 +79,8 @@ export default function LoginScreen() {
           },
         ])
       }
-      console.log("✅ Login successful, navigation handled by root layout.")
     } catch (error: any) {
       console.error("❌ Login error:", error)
-      // Error alert is already shown in the signIn function
     } finally {
       setLoading(false)
     }
@@ -85,12 +91,9 @@ export default function LoginScreen() {
     try {
       const credentials = await authenticateWithBiometrics()
       if (credentials) {
-        // Use the retrieved credentials to sign in
         await signIn(credentials.email, credentials.password)
         Alert.alert(t("success"), t("biometricLoginSuccess"))
-        console.log("✅ Biometric login successful, navigation handled by root layout.")
       } else {
-        // Biometric authentication failed or was cancelled
         Alert.alert("Biometric Failed", "Biometric authentication was cancelled or failed.")
       }
     } catch (error: any) {
@@ -101,84 +104,186 @@ export default function LoginScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white" style={{ direction: isRTL ? "rtl" : "ltr" }}>
-      {/* Header with Language Toggle */}
-      <View className={`flex-row justify-between items-center p-4 pt-12 ${isRTL ? "flex-row-reverse" : ""}`}>
-        <View />
-        <LanguageToggle />
-      </View>
-
-      <View className="flex-1 px-6 justify-center">
-        <View className="mb-8">
-          <Text className={`text-3xl font-bold text-gray-800 mb-2 ${isRTL ? "text-right" : "text-left"}`}>
-            {t("welcome")}
-          </Text>
-          <Text className={`text-gray-600 ${isRTL ? "text-right" : "text-left"}`}>{t("signInToContinue")}</Text>
+    <View style={[styles.container, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
+      <View style={styles.contentWrapper}>
+        {/* Language Toggle */}
+        <View style={styles.header}>
+          <LanguageToggle />
         </View>
 
-        <View className="space-y-4">
+        {/* Headings */}
+        <View style={{ marginBottom: 30 }}>
+          <Text style={[styles.title, isRTL && styles.rtlText]}>{t("welcome")}</Text>
+          <Text style={[styles.subtitle, isRTL && styles.rtlText]}>{t("signInToContinue")}</Text>
+        </View>
+
+        {/* Inputs */}
+        <View style={{ gap: 16 }}>
           <View>
-            <Text className={`text-gray-700 mb-2 ${isRTL ? "text-right" : "text-left"}`}>{t("email")}</Text>
+            <Text style={[styles.label, isRTL && styles.rtlText]}>{t("email")}</Text>
             <TextInput
-              className={`border border-gray-300 rounded-lg px-4 py-3 text-base ${isRTL ? "text-right" : "text-left"}`}
+              style={[styles.input, isRTL && styles.rtlInput]}
               placeholder={t("enterEmail")}
               value={email}
               onChangeText={setEmail}
               keyboardType="email-address"
               autoCapitalize="none"
-              autoComplete="email"
               textAlign={isRTL ? "right" : "left"}
-              style={{ writingDirection: isRTL ? "rtl" : "ltr" }}
             />
           </View>
 
           <View>
-            <Text className={`text-gray-700 mb-2 ${isRTL ? "text-right" : "text-left"}`}>{t("password")}</Text>
+            <Text style={[styles.label, isRTL && styles.rtlText]}>{t("password")}</Text>
             <TextInput
-              className={`border border-gray-300 rounded-lg px-4 py-3 text-base ${isRTL ? "text-right" : "text-left"}`}
+              style={[styles.input, isRTL && styles.rtlInput]}
               placeholder={t("enterPassword")}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
               autoComplete="password"
               textAlign={isRTL ? "right" : "left"}
-              style={{ writingDirection: isRTL ? "rtl" : "ltr" }}
             />
           </View>
+        </View>
 
+        {/* Gradient Button with Backdrop */}
+        <BlurView intensity={30} tint="light" style={styles.backdrop}>
           <TouchableOpacity
-            className={`bg-blue-600 rounded-lg py-4 mt-6 ${loading ? "opacity-50" : ""}`}
+            style={[styles.loginButton, loading && styles.disabledButton]}
             onPress={handleLogin}
             disabled={loading}
           >
-            {loading ? (
-              <LoadingSpinner color="white" size="small" />
-            ) : (
-              <Text className="text-white text-center font-semibold text-lg">{t("signIn")}</Text>
-            )}
-          </TouchableOpacity>
-
-          {isBiometricAvailable && hasSavedCredentials && (
-            <TouchableOpacity
-              className="border border-blue-600 rounded-lg py-4 mt-4 flex-row justify-center items-center"
-              onPress={handleBiometricLogin}
-              disabled={loading}
+            <LinearGradient
+              colors={["#d4d4d4", "#a3a3a3", "#737373"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.gradient}
             >
-              <Ionicons name="finger-print" size={24} color="#3B82F6" />
-              <Text className="text-blue-600 font-semibold text-lg ml-2">{t("biometricLogin")}</Text>
-            </TouchableOpacity>
-          )}
+              {loading ? (
+                <LoadingSpinner color="white" size="small" />
+              ) : (
+                <Text style={styles.loginText}>{t("signIn")}</Text>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </BlurView>
 
-          <Link href="/auth/signup" asChild>
-            <TouchableOpacity className="mt-6">
-              <Text className={`text-center text-gray-600 ${isRTL ? "text-right" : "text-left"}`}>
-                {t("dontHaveAccount")}
-                <Text className="text-blue-600 font-semibold"> {t("signUp")}</Text>
-              </Text>
-            </TouchableOpacity>
-          </Link>
-        </View>
+        {/* Biometric */}
+        {isBiometricAvailable && hasSavedCredentials && (
+          <TouchableOpacity style={styles.biometricButton} onPress={handleBiometricLogin} disabled={loading}>
+            <Ionicons name="finger-print" size={22} color="#52525b" />
+            <Text style={styles.biometricText}>{t("biometricLogin")}</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* Signup Link */}
+        <Link href="/auth/signup" asChild>
+          <TouchableOpacity>
+            <Text style={[styles.signupText, isRTL && styles.rtlText]}>
+              {t("dontHaveAccount")}
+              <Text style={styles.signupLink}> {t("signUp")}</Text>
+            </Text>
+          </TouchableOpacity>
+        </Link>
       </View>
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f3f4f6",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  contentWrapper: {
+    width: "100%",
+    paddingHorizontal: 24,
+    maxWidth: 400,
+  },
+  header: {
+    alignItems: "flex-end",
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "#1f2937",
+    marginBottom: 4,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: "#6b7280",
+  },
+  label: {
+    fontSize: 15,
+    color: "#374151",
+    marginBottom: 6,
+  },
+  input: {
+    backgroundColor: "#fff",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    borderColor: "#d1d5db",
+    borderWidth: 1,
+    fontSize: 16,
+  },
+  rtlInput: {
+    textAlign: "right",
+    writingDirection: "rtl",
+  },
+  rtlText: {
+    textAlign: "right",
+  },
+  loginButton: {
+    marginTop: 32,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  gradient: {
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  loginText: {
+    color: "#111827",
+    fontWeight: "600",
+    fontSize: 17,
+  },
+  disabledButton: {
+    opacity: 0.6,
+  },
+  backdrop: {
+    marginTop: 24,
+    borderRadius: 12,
+    overflow: "hidden",
+  },
+  biometricButton: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 20,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: "#a1a1aa",
+    borderRadius: 10,
+    gap: 8,
+  },
+  biometricText: {
+    color: "#52525b",
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  signupText: {
+    marginTop: 24,
+    fontSize: 15,
+    color: "#4b5563",
+    textAlign: "center",
+  },
+  signupLink: {
+    color: "#111827",
+    fontWeight: "bold",
+  },
+})

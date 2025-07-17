@@ -1,7 +1,8 @@
 import { useData } from "../providers/DataProvider"
 
 export const useEvents = () => {
-  const { events, loading, error, searchEvents, clearEvents, loadSampleEvents, loadDefaultEvents } = useData()
+  const { events, loading, error, searchEvents, clearEvents, loadSampleEvents, loadDefaultEvents, loadMoreEvents } =
+    useData()
 
   return {
     events,
@@ -11,5 +12,6 @@ export const useEvents = () => {
     clearEvents,
     loadSampleEvents,
     loadDefaultEvents,
+    loadMoreEvents,
   } as const
 }

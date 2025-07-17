@@ -14,12 +14,9 @@ export default function ProfileScreen() {
   const handleLogout = () => {
     Alert.alert(
       t("logout"),
-      "Are you sure you want to logout?",
+      t("logoutConfirm"),
       [
-        {
-          text: "Cancel",
-          style: "cancel",
-        },
+        { text: t("cancel"), style: "cancel" },
         {
           text: t("logout"),
           style: "destructive",
@@ -27,33 +24,38 @@ export default function ProfileScreen() {
             try {
               console.log("🔄 User confirmed logout, proceeding...")
               await logout()
-              // Navigation will be handled automatically by auth state change in app/index.tsx
             } catch (error) {
               console.error("❌ Logout failed:", error)
-              // Error alert is already shown in the logout function
             }
           },
         },
       ],
-      { cancelable: true },
+      { cancelable: true }
     )
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-50" style={{ direction: isRTL ? "rtl" : "ltr" }}>
-      <View className={`px-4 py-2 bg-white border-b border-gray-200 ${isRTL ? "text-right" : "text-left"}`}>
-        <Text className={`text-2xl font-bold text-gray-800 ${isRTL ? "text-right" : "text-left"}`}>{t("profile")}</Text>
+    <SafeAreaView className={`flex-1 bg-gray-50 ${isRTL ? "rtl" : "ltr"}`}>
+      {/* Header */}
+      <View className="px-4 py-2 bg-white border-b border-gray-200">
+        <Text className={`text-2xl font-bold text-gray-800 ${isRTL ? "text-right" : "text-left"}`}>
+          {t("profile")}
+        </Text>
       </View>
 
+      {/* Content */}
       <View className="flex-1 p-4">
+        {/* User Info */}
         <View className="bg-white rounded-xl p-6 items-center mb-6">
           <View className="w-20 h-20 bg-gray-100 rounded-full items-center justify-center mb-4">
             <Ionicons name="person" size={48} color="#6B7280" />
           </View>
-          <Text className={`text-lg font-semibold text-gray-800 ${isRTL ? "text-right" : "text-left"}`}>
-            {userProfile?.displayName || user?.email}
+          <Text className={`text-lg font-semibold text-gray-800 ${isRTL ? "text-right w-full" : "text-left w-full"}`}>
+            {userProfile?.displayName || user?.email || ""}
           </Text>
-          <Text className={`text-sm text-gray-500 ${isRTL ? "text-right" : "text-left"}`}>{user?.email}</Text>
+          <Text className={`text-sm text-gray-500 ${isRTL ? "text-right w-full" : "text-left w-full"}`}>
+            {user?.email || ""}
+          </Text>
         </View>
 
         {/* User Stats */}
@@ -64,21 +66,28 @@ export default function ProfileScreen() {
             </Text>
             <View className={`flex-row justify-between ${isRTL ? "flex-row-reverse" : ""}`}>
               <View className="items-center">
-                <Text className="text-2xl font-bold text-blue-600">{userProfile.stats.favoriteEvents}</Text>
-                <Text className="text-sm text-gray-500">Favorites</Text>
+                <Text className="text-2xl font-bold text-blue-600">
+                  {userProfile.stats.favoriteEvents}
+                </Text>
+                <Text className="text-sm text-gray-500">{t("favorites")}</Text>
               </View>
               <View className="items-center">
-                <Text className="text-2xl font-bold text-green-600">{userProfile.stats.searchCount}</Text>
-                <Text className="text-sm text-gray-500">Searches</Text>
+                <Text className="text-2xl font-bold text-green-600">
+                  {userProfile.stats.searchCount}
+                </Text>
+                <Text className="text-sm text-gray-500">{t("searches")}</Text>
               </View>
               <View className="items-center">
-                <Text className="text-2xl font-bold text-purple-600">{userProfile.stats.eventsViewed}</Text>
+                <Text className="text-2xl font-bold text-purple-600">
+                  {userProfile.stats.eventsViewed}
+                </Text>
                 <Text className="text-sm text-gray-500">Events Viewed</Text>
               </View>
             </View>
           </View>
         )}
 
+        {/* Language Toggle */}
         <View className="bg-white rounded-xl mb-6">
           <View className={`flex-row items-center justify-between p-4 ${isRTL ? "flex-row-reverse" : ""}`}>
             <View className={`flex-row items-center ${isRTL ? "flex-row-reverse" : ""}`}>
@@ -91,12 +100,15 @@ export default function ProfileScreen() {
           </View>
         </View>
 
+        {/* Logout Button */}
         <TouchableOpacity
           className={`bg-white rounded-xl p-4 flex-row items-center justify-center border border-red-200 ${isRTL ? "flex-row-reverse" : ""}`}
           onPress={handleLogout}
         >
           <Ionicons name="log-out-outline" size={24} color="#EF4444" />
-          <Text className={`text-red-500 text-base font-semibold ${isRTL ? "mr-2" : "ml-2"}`}>{t("logout")}</Text>
+          <Text className={`text-red-500 text-base font-semibold ${isRTL ? "mr-2" : "ml-2"}`}>
+            {t("logout")}
+          </Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>

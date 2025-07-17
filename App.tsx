@@ -4,22 +4,47 @@ import { useEffect } from "react"
 import { StatusBar } from "expo-status-bar"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { I18nextProvider } from "react-i18next"
-import { AuthProvider } from "./src/providers/AuthProvider"
-import { DataProvider } from "./src/providers/DataProvider"
-import { LanguageProvider } from "./src/providers/LanguageProvider"
-import i18n from "./src/i18n/config"
-import { seedInitialData } from "./src/services/DataSeeder"
-import "./global.css"
+import { I18nManager } from "react-native"
+import * as Updates from "expo-updates"
 
-// Import Expo Router's root component
 import { Slot } from "expo-router"
 
-// Polyfill for Intl.PluralRules
-// This helps resolve the i18next warning about Intl API compatibility
-import "@formatjs/intl-pluralrules/polyfill"
-import "@formatjs/intl-pluralrules/locale-data/en" // Add locale data for English
-import "@formatjs/intl-pluralrules/locale-data/ar" // Add locale data for Arabic
+import { AuthProvider } from "./src/providers/AuthProvider"
+import { DataProvider } from "./src/providers/DataProvider"
+import { LanguageProvider, useLanguage } from "./src/providers/LanguageProvider"
+import i18n from "./src/i18n/config"
+import { seedInitialData } from "./src/services/DataSeeder"
 
+import "./global.css"
+
+// Polyfills for RTL plural support
+import "@formatjs/intl-pluralrules/polyfill"
+import "@formatjs/intl-pluralrules/locale-data/en"
+import "@formatjs/intl-pluralrules/locale-data/ar"
+
+// ---------- App Content that responds to RTL direction ----------
+function AppContent() {
+  const { isRTL } = useLanguage()
+
+  useEffect(() => {
+    if (I18nManager.isRTL !== isRTL) {
+      I18nManager.allowRTL(true)
+      I18nManager.forceRTL(isRTL)
+      if (!__DEV__) {
+        Updates.reloadAsync?.()
+      }
+    }
+  }, [isRTL])
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1, direction: isRTL ? "rtl" : "ltr" }}>
+      <StatusBar style="auto" />
+      <Slot />
+    </GestureHandlerRootView>
+  )
+}
+
+// ---------- Root App with Providers ----------
 export default function App() {
   useEffect(() => {
     const initializeApp = async () => {
@@ -35,17 +60,14 @@ export default function App() {
   }, [])
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <I18nextProvider i18n={i18n}>
-        <LanguageProvider>
-          <AuthProvider>
-            <DataProvider>
-              <StatusBar style="auto" />
-              <Slot />
-            </DataProvider>
-          </AuthProvider>
-        </LanguageProvider>
-      </I18nextProvider>
-    </GestureHandlerRootView>
+    <I18nextProvider i18n={i18n}>
+      <LanguageProvider>
+        <AuthProvider>
+          <DataProvider>
+            <AppContent />
+          </DataProvider>
+        </AuthProvider>
+      </LanguageProvider>
+    </I18nextProvider>
   )
 }

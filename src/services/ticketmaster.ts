@@ -45,7 +45,12 @@ api.interceptors.response.use(
   },
 )
 
-export const searchEventsAPI = async (keyword: string, city: string): Promise<Event[]> => {
+export const searchEventsAPI = async (
+  keyword: string,
+  city: string,
+  page = 0,
+  size = 20,
+): Promise<{ events: Event[]; totalElements: number; totalPages: number }> => {
   try {
     if (!TICKETMASTER_API_KEY) {
       console.warn("⚠️ Ticketmaster API key not configured")
@@ -54,10 +59,10 @@ export const searchEventsAPI = async (keyword: string, city: string): Promise<Ev
 
     const params: Record<string, string | number> = {
       apikey: TICKETMASTER_API_KEY,
-      size: 20,
+      size: size,
+      page: page, // Add page parameter
       sort: "date,asc",
-      // Add country code for better results
-      countryCode: "US",
+      // Removed hardcoded countryCode: "US" to allow global search
     }
 
     // Add keyword if provided
@@ -65,36 +70,31 @@ export const searchEventsAPI = async (keyword: string, city: string): Promise<Ev
       params.keyword = keyword.trim()
     }
 
-    // Add city if provided, otherwise default to popular cities
+    // Add city if provided, otherwise no city parameter for global search
     if (city.trim()) {
       params.city = city.trim()
-    } else if (!keyword.trim()) {
-      // If no search terms, get events from major cities
-      params.city = "New York,Los Angeles,Chicago,Houston,Phoenix"
     }
 
     console.log("🔍 Searching Ticketmaster with params:", params)
 
     const response = await api.get("/events.json", { params })
 
-    if (response.data._embedded?.events) {
-      const events = response.data._embedded.events as Event[]
-      console.log(`✅ Found ${events.length} events from Ticketmaster`)
+    const events = (response.data._embedded?.events || []) as Event[]
+    const totalElements = response.data.page?.totalElements || 0
+    const totalPages = response.data.page?.totalPages || 0
 
-      // Log first event for debugging
-      if (events.length > 0) {
-        console.log("📋 Sample event:", {
-          name: events[0].name,
-          date: events[0].dates?.start?.localDate,
-          venue: events[0]._embedded?.venues?.[0]?.name,
-        })
-      }
+    console.log(`✅ Found ${events.length} events from Ticketmaster (Page ${page + 1}/${totalPages})`)
 
-      return events
+    // Log first event for debugging
+    if (events.length > 0) {
+      console.log("📋 Sample event:", {
+        name: events[0].name,
+        date: events[0].dates?.start?.localDate,
+        venue: events[0]._embedded?.venues?.[0]?.name,
+      })
     }
 
-    console.log("ℹ️ No events found from Ticketmaster API")
-    return []
+    return { events, totalElements, totalPages }
   } catch (error: unknown) {
     console.error("❌ Ticketmaster API Error:", error)
 

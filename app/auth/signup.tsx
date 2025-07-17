@@ -1,8 +1,16 @@
 "use client"
 
 import { useState } from "react"
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native"
-import { Link, useRouter } from "expo-router"
+import {
+  TextInput,
+  View,
+  Text,
+  TouchableOpacity,
+  Alert,
+  I18nManager,
+} from "react-native"
+import { useRouter, Link } from "expo-router"
+import { LinearGradient } from "expo-linear-gradient"
 import { useAuth } from "../../src/providers/AuthProvider"
 import { useLanguage } from "../../src/hooks/useLanguage"
 import LoadingSpinner from "../../src/components/common/LoadingSpinner"
@@ -14,9 +22,12 @@ export default function SignUpScreen() {
   const [confirmPassword, setConfirmPassword] = useState("")
   const [fullName, setFullName] = useState("")
   const [loading, setLoading] = useState(false)
+
   const { signUp } = useAuth()
   const { t, isRTL } = useLanguage()
   const router = useRouter()
+
+  const direction = isRTL ? "rtl" : "ltr"
 
   const handleSignUp = async () => {
     if (!email || !password || !confirmPassword || !fullName) {
@@ -32,9 +43,8 @@ export default function SignUpScreen() {
     setLoading(true)
     try {
       await signUp(email, password, fullName)
-      console.log("✅ Sign up successful, should navigate automatically")
+      console.log("✅ Sign up successful")
     } catch (error: any) {
-      console.error("❌ Sign up error:", error)
       Alert.alert(t("error"), error.message)
     } finally {
       setLoading(false)
@@ -42,92 +52,142 @@ export default function SignUpScreen() {
   }
 
   return (
-    <View className="flex-1 bg-white" style={{ direction: isRTL ? "rtl" : "ltr" }}>
-      {/* Header with Language Toggle */}
-      <View className={`flex-row justify-between items-center p-4 pt-12 ${isRTL ? "flex-row-reverse" : ""}`}>
+    <View
+      className="flex-1 bg-gray-100 px-6 justify-center"
+      style={{ direction }}
+    >
+      {/* Header */}
+      <View
+        className="pt-12 px-4 flex-row justify-between"
+        style={{ flexDirection: isRTL ? "row-reverse" : "row" }}
+      >
         <View />
         <LanguageToggle />
       </View>
 
-      <View className="flex-1 px-6 justify-center">
-        <View className="mb-8">
-          <Text className={`text-3xl font-bold text-gray-800 mb-2 ${isRTL ? "text-right" : "text-left"}`}>
-            {t("createAccount")}
+      {/* Title */}
+      <View className={`mb-6 w-full ${isRTL ? "items-end" : "items-start"}`}>
+        <Text
+          className={`text-3xl font-bold text-gray-900 mb-2 w-full ${
+            isRTL ? "text-right" : "text-left"
+          }`}
+        >
+          {t("createAccount")}
+        </Text>
+        <Text
+          className={`text-base text-gray-600 w-full ${
+            isRTL ? "text-right" : "text-left"
+          }`}
+        >
+          {t("signUpToContinue")}
+        </Text>
+      </View>
+
+      {/* Form Fields */}
+      <View className="gap-4">
+        {/* Full Name */}
+        <View>
+          <Text className="text-sm text-gray-700 mb-1">
+            {t("fullName")}
           </Text>
-          <Text className={`text-gray-600 ${isRTL ? "text-right" : "text-left"}`}>{t("signUpToContinue")}</Text>
+          <TextInput
+            placeholder={t("enterFullName")}
+            value={fullName}
+            onChangeText={setFullName}
+            autoCapitalize="words"
+            textAlign={isRTL ? "right" : "left"}
+            placeholderTextColor="#9ca3af"
+            style={{ writingDirection: direction }}
+            className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 text-base"
+          />
         </View>
 
-        <View className="space-y-4">
-          <View>
-            <Text className={`text-gray-700 mb-2 ${isRTL ? "text-right" : "text-left"}`}>{t("fullName")}</Text>
-            <TextInput
-              className={`border border-gray-300 rounded-lg px-4 py-3 text-base ${isRTL ? "text-right" : "text-left"}`}
-              placeholder={t("enterFullName")}
-              value={fullName}
-              onChangeText={setFullName}
-              autoCapitalize="words"
-              textAlign={isRTL ? "right" : "left"}
-            />
-          </View>
+        {/* Email */}
+        <View>
+          <Text className="text-sm text-gray-700 mb-1">
+            {t("email")}
+          </Text>
+          <TextInput
+            placeholder={t("enterEmail")}
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            textAlign={isRTL ? "right" : "left"}
+            placeholderTextColor="#9ca3af"
+            style={{ writingDirection: direction }}
+            className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 text-base"
+          />
+        </View>
 
-          <View>
-            <Text className={`text-gray-700 mb-2 ${isRTL ? "text-right" : "text-left"}`}>{t("email")}</Text>
-            <TextInput
-              className={`border border-gray-300 rounded-lg px-4 py-3 text-base ${isRTL ? "text-right" : "text-left"}`}
-              placeholder={t("enterEmail")}
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-              textAlign={isRTL ? "right" : "left"}
-            />
-          </View>
+        {/* Password */}
+        <View>
+          <Text className="text-sm text-gray-700 mb-1">
+            {t("password")}
+          </Text>
+          <TextInput
+            placeholder={t("enterPassword")}
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            textAlign={isRTL ? "right" : "left"}
+            placeholderTextColor="#9ca3af"
+            style={{ writingDirection: direction }}
+            className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 text-base"
+          />
+        </View>
 
-          <View>
-            <Text className={`text-gray-700 mb-2 ${isRTL ? "text-right" : "text-left"}`}>{t("password")}</Text>
-            <TextInput
-              className={`border border-gray-300 rounded-lg px-4 py-3 text-base ${isRTL ? "text-right" : "text-left"}`}
-              placeholder={t("enterPassword")}
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              textAlign={isRTL ? "right" : "left"}
-            />
-          </View>
+        {/* Confirm Password */}
+        <View>
+          <Text className="text-sm text-gray-700 mb-1">
+            {t("confirmPassword")}
+          </Text>
+          <TextInput
+            placeholder={t("enterConfirmPassword")}
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            secureTextEntry
+            textAlign={isRTL ? "right" : "left"}
+            placeholderTextColor="#9ca3af"
+            style={{ writingDirection: direction }}
+            className="bg-white border border-gray-300 rounded-lg px-4 py-3 text-gray-900 text-base"
+          />
+        </View>
 
-          <View>
-            <Text className={`text-gray-700 mb-2 ${isRTL ? "text-right" : "text-left"}`}>{t("confirmPassword")}</Text>
-            <TextInput
-              className={`border border-gray-300 rounded-lg px-4 py-3 text-base ${isRTL ? "text-right" : "text-left"}`}
-              placeholder={t("enterConfirmPassword")}
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              textAlign={isRTL ? "right" : "left"}
-            />
-          </View>
-
-          <TouchableOpacity
-            className={`bg-blue-600 rounded-lg py-4 mt-6 ${loading ? "opacity-50" : ""}`}
-            onPress={handleSignUp}
-            disabled={loading}
+        {/* Submit Button */}
+        <TouchableOpacity
+          className="mt-6"
+          onPress={handleSignUp}
+          disabled={loading}
+          activeOpacity={0.8}
+        >
+          <LinearGradient
+            colors={["#d4d4d4", "#a3a3a3"]}
+            start={[0, 0]}
+            end={[1, 1]}
+            className="rounded-xl py-4 items-center justify-center"
           >
             {loading ? (
-              <LoadingSpinner color="white" size="small" />
+              <LoadingSpinner color="black" size="small" />
             ) : (
-              <Text className="text-white text-center font-semibold text-lg">{t("createAccount")}</Text>
-            )}
-          </TouchableOpacity>
-
-          <Link href="/auth" asChild>
-            <TouchableOpacity className="mt-6">
-              <Text className="text-center text-gray-600">
-                {t("alreadyHaveAccount")}
-                <Text className="text-blue-600 font-semibold"> {t("signIn")}</Text>
+              <Text className="text-black font-semibold text-base">
+                {t("createAccount")}
               </Text>
-            </TouchableOpacity>
-          </Link>
-        </View>
+            )}
+          </LinearGradient>
+        </TouchableOpacity>
+
+        {/* Sign In Link */}
+        <Link href="/auth" asChild>
+          <TouchableOpacity
+            className={`mt-6 ${isRTL ? "items-end" : "items-start"}`}
+          >
+            <Text className="text-sm text-gray-700">
+              {t("alreadyHaveAccount")}
+              <Text className="text-gray-500 font-semibold"> {t("signIn")}</Text>
+            </Text>
+          </TouchableOpacity>
+        </Link>
       </View>
     </View>
   )
