@@ -14,6 +14,12 @@ import "./global.css"
 // Import Expo Router's root component
 import { Slot } from "expo-router"
 
+// Polyfill for Intl.PluralRules
+// This helps resolve the i18next warning about Intl API compatibility
+import "@formatjs/intl-pluralrules/polyfill"
+import "@formatjs/intl-pluralrules/locale-data/en" // Add locale data for English
+import "@formatjs/intl-pluralrules/locale-data/ar" // Add locale data for Arabic
+
 export default function App() {
   useEffect(() => {
     const initializeApp = async () => {

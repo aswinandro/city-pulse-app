@@ -145,7 +145,7 @@ export default function EventDetailScreen() {
               <Text className={`text-lg font-semibold text-gray-800 mb-3 ${isRTL ? "text-right" : "text-left"}`}>
                 Categories
               </Text>
-              <View className={`flex-row flex-wrap ${isRTL ? "flex-row-reverse" : ""}`}>
+              <View className={`flex-row flex-wrap ${isRTL ? "flex-row-reverse" : "justify-start"}`}>
                 {event.classifications.map((classification, index) => (
                   <View key={index} className={`bg-blue-100 px-3 py-1.5 rounded-full mb-2 ${isRTL ? "ml-2" : "mr-2"}`}>
                     <Text className="text-blue-800 text-sm font-medium">

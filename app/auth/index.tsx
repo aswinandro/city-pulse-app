@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native"
 import { Link } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
@@ -15,9 +15,33 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const { signIn } = useAuth()
-  const { authenticateWithBiometrics, isBiometricAvailable, hasSavedCredentials, saveBiometricCredentials } =
-    useBiometric()
+  const {
+    isBiometricAvailable,
+    biometricType,
+    hasSavedCredentials,
+    authenticateWithBiometrics,
+    saveBiometricCredentials,
+  } = useBiometric()
   const { t, isRTL } = useLanguage()
+
+  // Pre-fill email if biometric credentials are saved
+  useEffect(() => {
+    const loadSavedEmail = async () => {
+      if (hasSavedCredentials) {
+        try {
+          const savedCreds = await (await import("../../src/services/StorageService")).StorageService.getItem(
+            "biometric_credentials",
+          )
+          if (savedCreds && typeof savedCreds === "object" && "email" in savedCreds) {
+            setEmail(savedCreds.email as string)
+          }
+        } catch (e) {
+          console.error("Failed to load saved email for pre-fill:", e)
+        }
+      }
+    }
+    loadSavedEmail()
+  }, [hasSavedCredentials])
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -41,13 +65,13 @@ export default function LoginScreen() {
                 Alert.alert("Success", "Biometric login enabled!")
               } catch (error) {
                 console.error("Failed to save biometric credentials:", error)
+                Alert.alert("Error", "Failed to enable biometric login.")
               }
             },
           },
         ])
       }
-
-      console.log("✅ Login successful, should navigate automatically")
+      console.log("✅ Login successful, navigation handled by root layout.")
     } catch (error: any) {
       console.error("❌ Login error:", error)
       // Error alert is already shown in the signIn function
@@ -57,17 +81,17 @@ export default function LoginScreen() {
   }
 
   const handleBiometricLogin = async () => {
+    setLoading(true)
     try {
-      setLoading(true)
       const credentials = await authenticateWithBiometrics()
-
       if (credentials) {
-        // Use the saved email for login, but we need to handle the password differently
-        // Since we can't decrypt the password, we'll need to modify our approach
-        setEmail(credentials.email)
-        Alert.alert("Biometric Authentication Successful", "Please enter your password to complete login.", [
-          { text: "OK" },
-        ])
+        // Use the retrieved credentials to sign in
+        await signIn(credentials.email, credentials.password)
+        Alert.alert(t("success"), t("biometricLoginSuccess"))
+        console.log("✅ Biometric login successful, navigation handled by root layout.")
+      } else {
+        // Biometric authentication failed or was cancelled
+        Alert.alert("Biometric Failed", "Biometric authentication was cancelled or failed.")
       }
     } catch (error: any) {
       Alert.alert(t("error"), error.message)

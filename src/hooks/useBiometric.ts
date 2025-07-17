@@ -6,7 +6,7 @@ import { StorageService } from "../services/StorageService"
 
 interface BiometricCredentials {
   readonly email: string
-  readonly hashedPassword: string
+  readonly password: string // Storing plain password for demo. In production, use secure methods.
 }
 
 interface BiometricHook {
@@ -19,21 +19,12 @@ interface BiometricHook {
   readonly checkBiometricAvailability: () => Promise<void>
 }
 
-// Simple hash function for demo purposes - in production, use proper encryption
-const simpleHash = (str: string): string => {
-  let hash = 0
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i)
-    hash = (hash << 5) - hash + char
-    hash = hash & hash // Convert to 32-bit integer
-  }
-  return hash.toString()
-}
-
 export const useBiometric = (): BiometricHook => {
   const [isBiometricAvailable, setIsBiometricAvailable] = useState(false)
   const [biometricType, setBiometricType] = useState<string | null>(null)
   const [hasSavedCredentials, setHasSavedCredentials] = useState(false)
+
+  const BIOMETRIC_CREDENTIALS_KEY = "biometric_credentials"
 
   const checkBiometricAvailability = useCallback(async () => {
     try {
@@ -52,7 +43,7 @@ export const useBiometric = (): BiometricHook => {
       }
 
       // Check if we have saved credentials
-      const savedCredentials = await StorageService.getItem<BiometricCredentials>("biometric_credentials")
+      const savedCredentials = await StorageService.getItem<BiometricCredentials>(BIOMETRIC_CREDENTIALS_KEY)
       setHasSavedCredentials(!!savedCredentials)
     } catch (error) {
       console.error("Error checking biometric availability:", error)
@@ -64,9 +55,9 @@ export const useBiometric = (): BiometricHook => {
     try {
       const credentials: BiometricCredentials = {
         email,
-        hashedPassword: simpleHash(password),
+        password, // Storing plain password for demo.
       }
-      await StorageService.setItem("biometric_credentials", credentials)
+      await StorageService.setItem(BIOMETRIC_CREDENTIALS_KEY, credentials)
       setHasSavedCredentials(true)
       console.log("✅ Biometric credentials saved")
     } catch (error) {
@@ -77,7 +68,7 @@ export const useBiometric = (): BiometricHook => {
 
   const clearBiometricCredentials = useCallback(async () => {
     try {
-      await StorageService.removeItem("biometric_credentials")
+      await StorageService.removeItem(BIOMETRIC_CREDENTIALS_KEY)
       setHasSavedCredentials(false)
       console.log("✅ Biometric credentials cleared")
     } catch (error) {
@@ -90,6 +81,9 @@ export const useBiometric = (): BiometricHook => {
       if (!isBiometricAvailable) {
         throw new Error("Biometric authentication not available")
       }
+      if (!hasSavedCredentials) {
+        throw new Error("No biometric credentials saved. Please log in normally first.")
+      }
 
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: "Authenticate to access City Pulse",
@@ -98,12 +92,13 @@ export const useBiometric = (): BiometricHook => {
       })
 
       if (result.success) {
-        const savedCredentials = await StorageService.getItem<BiometricCredentials>("biometric_credentials")
+        const savedCredentials = await StorageService.getItem<BiometricCredentials>(BIOMETRIC_CREDENTIALS_KEY)
         if (savedCredentials) {
           console.log("✅ Biometric authentication successful, returning credentials")
           return savedCredentials
         } else {
-          throw new Error("No saved credentials found")
+          // This case should ideally not happen if hasSavedCredentials is true
+          throw new Error("Saved credentials not found after biometric success.")
         }
       } else {
         return null
@@ -113,7 +108,7 @@ export const useBiometric = (): BiometricHook => {
       console.error("❌ Biometric authentication error:", errorMessage)
       throw new Error(errorMessage)
     }
-  }, [isBiometricAvailable])
+  }, [isBiometricAvailable, hasSavedCredentials])
 
   useEffect(() => {
     checkBiometricAvailability()
