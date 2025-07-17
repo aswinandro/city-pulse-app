@@ -1,25 +1,18 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { View, Text } from "react-native"
 import { useRouter } from "expo-router"
 import Animated, { useSharedValue, useAnimatedStyle, withSpring, withDelay } from "react-native-reanimated"
 import { useAuth } from "../src/providers/AuthProvider"
 
 export default function SplashScreen() {
-  const { user, loading, checkAuthState } = useAuth()
+  const { user, loading } = useAuth()
   const router = useRouter()
+  const [initialLoad, setInitialLoad] = useState(true)
   const logoScale = useSharedValue(0)
   const logoOpacity = useSharedValue(0)
   const textOpacity = useSharedValue(0)
-
-  const navigateToNextScreen = () => {
-    if (user) {
-      router.replace("/(tabs)")
-    } else {
-      router.replace("/auth")
-    }
-  }
 
   useEffect(() => {
     // Animate logo entrance
@@ -28,22 +21,31 @@ export default function SplashScreen() {
 
     // Animate text after logo
     textOpacity.value = withDelay(500, withSpring(1, { duration: 600 }))
-
-    // Check auth state and navigate
-    const timer = setTimeout(() => {
-      checkAuthState()
-    }, 2000)
-
-    return () => clearTimeout(timer)
   }, [])
 
   useEffect(() => {
+    // Only navigate after initial loading is complete
     if (!loading) {
-      // Add a small delay for smooth transition
-      const navigationTimer = setTimeout(navigateToNextScreen, 500)
-      return () => clearTimeout(navigationTimer)
+      const timer = setTimeout(
+        () => {
+          console.log("🔄 Navigation check - User:", user ? `${user.email} authenticated` : "not authenticated")
+
+          if (user) {
+            console.log("✅ User authenticated, navigating to tabs")
+            router.replace("/(tabs)")
+          } else {
+            console.log("❌ User not authenticated, navigating to auth")
+            router.replace("/auth")
+          }
+
+          setInitialLoad(false)
+        },
+        initialLoad ? 1500 : 100,
+      ) // Shorter delay for subsequent navigations
+
+      return () => clearTimeout(timer)
     }
-  }, [user, loading])
+  }, [user, loading, router, initialLoad])
 
   const logoAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: logoScale.value }],
@@ -64,7 +66,9 @@ export default function SplashScreen() {
 
       <Animated.View style={textAnimatedStyle} className="items-center">
         <Text className="text-white text-3xl font-bold mb-2 tracking-wide">City Pulse</Text>
-        <Text className="text-primary-100 text-lg font-medium">Discover Local Events</Text>
+        <Text className="text-primary-100 text-lg font-medium">
+          {loading ? "Initializing..." : user ? "Welcome back!" : "Discover Local Events"}
+        </Text>
       </Animated.View>
     </View>
   )

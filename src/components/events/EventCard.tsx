@@ -15,7 +15,7 @@ interface EventCardProps {
 
 export default function EventCard({ event, onPress }: EventCardProps) {
   const { favorites, toggleFavorite } = useFavorites()
-  const { t } = useLanguage()
+  const { t, isRTL } = useLanguage()
   const [imageError, setImageError] = useState(false)
 
   const isFavorite = favorites.some((fav) => fav.id === event.id)
@@ -26,6 +26,7 @@ export default function EventCard({ event, onPress }: EventCardProps) {
       className="bg-white rounded-lg shadow-sm border border-gray-200 mb-4"
       onPress={onPress}
       activeOpacity={0.7}
+      style={{ direction: isRTL ? "rtl" : "ltr" }}
     >
       <View className="relative">
         {event.images && event.images.length > 0 && !imageError ? (
@@ -42,7 +43,7 @@ export default function EventCard({ event, onPress }: EventCardProps) {
         )}
 
         <TouchableOpacity
-          className="absolute top-3 right-3 bg-white/80 rounded-full p-2"
+          className={`absolute top-3 bg-white/90 rounded-full p-2 shadow-sm ${isRTL ? "left-3" : "right-3"}`}
           onPress={() => toggleFavorite(event)}
         >
           <Ionicons
@@ -53,22 +54,42 @@ export default function EventCard({ event, onPress }: EventCardProps) {
         </TouchableOpacity>
       </View>
 
-      <View className="p-4">
-        <Text className="text-lg font-semibold text-gray-800 mb-2" numberOfLines={2}>
+      <View className="p-4" style={{ direction: isRTL ? "rtl" : "ltr" }}>
+        <Text
+          className={`text-lg font-semibold text-gray-800 mb-3 ${isRTL ? "text-right" : "text-left"}`}
+          numberOfLines={2}
+          style={{ writingDirection: isRTL ? "rtl" : "ltr" }}
+        >
           {event.name}
         </Text>
 
         {event.dates?.start?.localDate && (
-          <View className="flex-row items-center mb-1">
-            <Ionicons name="calendar-outline" size={16} color="#6B7280" />
-            <Text className="text-gray-600 ml-2 text-sm">{formatDate(event.dates.start.localDate)}</Text>
+          <View className={`flex-row items-center mb-2 ${isRTL ? "flex-row-reverse" : ""}`}>
+            <Ionicons
+              name="calendar-outline"
+              size={16}
+              color="#6B7280"
+              style={{ marginRight: isRTL ? 0 : 8, marginLeft: isRTL ? 8 : 0 }}
+            />
+            <Text className={`text-gray-600 text-sm ${isRTL ? "text-right" : "text-left"}`}>
+              {formatDate(event.dates.start.localDate)}
+            </Text>
           </View>
         )}
 
         {venue && (
-          <View className="flex-row items-center mb-2">
-            <Ionicons name="location-outline" size={16} color="#6B7280" />
-            <Text className="text-gray-600 ml-2 text-sm" numberOfLines={1}>
+          <View className={`flex-row items-center mb-3 ${isRTL ? "flex-row-reverse" : ""}`}>
+            <Ionicons
+              name="location-outline"
+              size={16}
+              color="#6B7280"
+              style={{ marginRight: isRTL ? 0 : 8, marginLeft: isRTL ? 8 : 0 }}
+            />
+            <Text
+              className={`text-gray-600 text-sm flex-1 ${isRTL ? "text-right" : "text-left"}`}
+              numberOfLines={1}
+              style={{ writingDirection: isRTL ? "rtl" : "ltr" }}
+            >
               {venue.name}
               {venue.city?.name && `, ${venue.city.name}`}
             </Text>
@@ -76,10 +97,10 @@ export default function EventCard({ event, onPress }: EventCardProps) {
         )}
 
         {event.classifications && event.classifications.length > 0 && (
-          <View className="flex-row flex-wrap mt-2">
+          <View className={`flex-row flex-wrap mt-2 ${isRTL ? "flex-row-reverse justify-end" : "justify-start"}`}>
             {event.classifications.slice(0, 2).map((classification, index) => (
-              <View key={index} className="bg-blue-100 px-2 py-1 rounded-full mr-2 mb-1">
-                <Text className="text-blue-800 text-xs">
+              <View key={index} className={`bg-blue-100 px-2 py-1 rounded-full mb-1 ${isRTL ? "ml-2" : "mr-2"}`}>
+                <Text className="text-blue-800 text-xs font-medium">
                   {classification.segment?.name || classification.genre?.name}
                 </Text>
               </View>

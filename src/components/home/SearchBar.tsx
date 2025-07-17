@@ -24,44 +24,75 @@ export default function SearchBar({
   const { t, isRTL } = useLanguage()
 
   return (
-    <View className={`mb-4 ${isRTL ? "flex-row-reverse" : ""}`}>
-      <View className="flex-row items-center bg-white rounded-lg border border-gray-300 mb-3 px-3 shadow-sm">
-        <Ionicons name="search-outline" size={20} color="#6B7280" className="mr-2" />
-        <TextInput
-          className={`flex-1 py-3 text-base text-gray-800 ${isRTL ? "text-right" : "text-left"}`}
-          placeholder={t("searchPlaceholder")}
-          value={searchQuery}
-          onChangeText={onSearchQueryChange}
-          placeholderTextColor="#9CA3AF"
-          returnKeyType="search"
-          onSubmitEditing={onSearch}
-        />
+    <View className="mb-4" style={{ direction: isRTL ? "rtl" : "ltr" }}>
+      {/* Search Input */}
+      <View className="bg-white rounded-lg border border-gray-300 mb-3 shadow-sm">
+        <View className={`flex-row items-center px-3 ${isRTL ? "flex-row-reverse" : ""}`}>
+          <Ionicons
+            name="search-outline"
+            size={20}
+            color="#6B7280"
+            style={{ marginRight: isRTL ? 0 : 12, marginLeft: isRTL ? 12 : 0 }}
+          />
+          <TextInput
+            className="flex-1 py-3 text-base text-gray-800"
+            placeholder={t("searchPlaceholder")}
+            value={searchQuery}
+            onChangeText={onSearchQueryChange}
+            placeholderTextColor="#9CA3AF"
+            returnKeyType="search"
+            onSubmitEditing={onSearch}
+            textAlign={isRTL ? "right" : "left"}
+            style={{ writingDirection: isRTL ? "rtl" : "ltr" }}
+          />
+        </View>
       </View>
 
-      <View className="flex-row items-center bg-white rounded-lg border border-gray-300 mb-3 px-3 shadow-sm">
-        <Ionicons name="location-outline" size={20} color="#6B7280" className="mr-2" />
-        <TextInput
-          className={`flex-1 py-3 text-base text-gray-800 ${isRTL ? "text-right" : "text-left"}`}
-          placeholder={t("cityPlaceholder")}
-          value={city}
-          onChangeText={onCityChange}
-          placeholderTextColor="#9CA3AF"
-          returnKeyType="search"
-          onSubmitEditing={onSearch}
-        />
+      {/* City Input */}
+      <View className="bg-white rounded-lg border border-gray-300 mb-3 shadow-sm">
+        <View className={`flex-row items-center px-3 ${isRTL ? "flex-row-reverse" : ""}`}>
+          <Ionicons
+            name="location-outline"
+            size={20}
+            color="#6B7280"
+            style={{ marginRight: isRTL ? 0 : 12, marginLeft: isRTL ? 12 : 0 }}
+          />
+          <TextInput
+            className="flex-1 py-3 text-base text-gray-800"
+            placeholder={t("cityPlaceholder")}
+            value={city}
+            onChangeText={onCityChange}
+            placeholderTextColor="#9CA3AF"
+            returnKeyType="search"
+            onSubmitEditing={onSearch}
+            textAlign={isRTL ? "right" : "left"}
+            style={{ writingDirection: isRTL ? "rtl" : "ltr" }}
+          />
+        </View>
       </View>
 
+      {/* Search Button */}
       <TouchableOpacity
         className={`bg-blue-600 rounded-lg py-3 items-center justify-center shadow-sm ${loading ? "opacity-50" : ""}`}
         onPress={onSearch}
         disabled={loading}
         activeOpacity={0.8}
       >
-        {loading ? (
-          <Ionicons name="hourglass-outline" size={20} color="white" />
-        ) : (
-          <Text className="text-white text-base font-semibold">{t("search")}</Text>
-        )}
+        <View className={`flex-row items-center ${isRTL ? "flex-row-reverse" : ""}`}>
+          {loading ? (
+            <Ionicons name="hourglass-outline" size={20} color="white" />
+          ) : (
+            <>
+              <Ionicons
+                name="search"
+                size={18}
+                color="white"
+                style={{ marginRight: isRTL ? 0 : 8, marginLeft: isRTL ? 8 : 0 }}
+              />
+              <Text className="text-white text-base font-semibold">{t("search")}</Text>
+            </>
+          )}
+        </View>
       </TouchableOpacity>
     </View>
   )

@@ -1,7 +1,7 @@
-import { useData } from "../providers/DataProvider" // Corrected import path
+import { useData } from "../providers/DataProvider"
 
 export const useEvents = () => {
-  const { events, loading, error, searchEvents, clearEvents, loadSampleEvents } = useData()
+  const { events, loading, error, searchEvents, clearEvents, loadSampleEvents, loadDefaultEvents } = useData()
 
   return {
     events,
@@ -10,5 +10,6 @@ export const useEvents = () => {
     searchEvents,
     clearEvents,
     loadSampleEvents,
+    loadDefaultEvents,
   } as const
 }
