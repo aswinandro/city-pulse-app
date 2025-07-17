@@ -26,7 +26,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/splash.png",
         "backgroundColor": "#3B82F6"
       },
       "package": "com.citypulse.app",
@@ -63,10 +63,13 @@
     },
     "scheme": "city-pulse",
     "deepLinking": true,
+    "jsEngine": "hermes",
     "extra": {
+      "enableDangerousExperimentalHermes": true,
       "router": {
         "origin": false
       }
-    }
+    },
+    "developmentClient": true
   }
 }

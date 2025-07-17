@@ -15,7 +15,9 @@ const LANGUAGE_DETECTOR = {
       if (savedLanguage) {
         callback(savedLanguage)
       } else {
-        const deviceLanguage = Localization.locale.split("-")[0]
+        // Use Localization.getLocales() instead of Localization.locale
+        const locales = Localization.getLocales()
+        const deviceLanguage = locales.length > 0 ? locales[0].languageCode : "en" // Get languageCode from the first locale
         callback(deviceLanguage)
       }
     } catch (error) {
@@ -42,6 +44,7 @@ i18n
     },
     fallbackLng: "en",
     debug: false,
+    compatibilityJSON: "v4",
     interpolation: {
       escapeValue: false,
     },

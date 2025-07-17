@@ -5,8 +5,6 @@ import {
   FlatList,
   RefreshControl,
   TouchableOpacity,
-  I18nManager,
-  StyleSheet,
 } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useRouter, useLocalSearchParams } from "expo-router"
@@ -20,8 +18,6 @@ import EventCard from "../../src/components/events/EventCard"
 import LanguageToggle from "../../src/components/common/LanguageToggle"
 import LoadingSpinner from "../../src/components/common/LoadingSpinner"
 
-const isRTL = I18nManager.isRTL
-
 export default function HomeScreen() {
   const [searchQuery, setSearchQuery] = useState("")
   const [city, setCity] = useState("")
@@ -29,9 +25,8 @@ export default function HomeScreen() {
   const [initialLoaded, setInitialLoaded] = useState(false)
 
   const { events, loading, searchEvents, error, loadDefaultEvents, loadMoreEvents } = useEvents()
-  const { t } = useLanguage()
+  const { t, isRTL } = useLanguage()
   const { userProfile, user } = useAuth()
-
   const router = useRouter()
   const params = useLocalSearchParams()
 
@@ -82,7 +77,7 @@ export default function HomeScreen() {
   const renderFooter = () => {
     if (!loading || events.length === 0) return null
     return (
-      <View style={styles.footer}>
+      <View className="py-4">
         <LoadingSpinner size="small" />
       </View>
     )
@@ -100,36 +95,38 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        {isRTL ? (
-          <>
-            <LanguageToggle />
-            <View style={styles.headingContainer}>
-              <Text style={styles.title}>{t("cityPulse")}</Text>
-              {userProfile && (
-                <Text style={styles.subtitle}>
-                  {`Welcome back, ${userProfile.displayName || user?.email || ""}`}
-                </Text>
-              )}
-            </View>
-          </>
-        ) : (
-          <>
-            <View style={styles.headingContainer}>
-              <Text style={styles.title}>{t("cityPulse")}</Text>
-              {userProfile && (
-                <Text style={styles.subtitle}>
-                  {`Welcome back, ${userProfile.displayName || user?.email || ""}`}
-                </Text>
-              )}
-            </View>
-            <LanguageToggle />
-          </>
-        )}
+    <SafeAreaView className={`flex-1 bg-gray-50 ${isRTL ? "rtl" : "ltr"}`}>
+      {/* 🔁 Header with RTL-aware layout */}
+      <View
+        className={`flex-row items-center justify-between px-4 py-3 border-b border-gray-200 ${
+          isRTL ? "flex-row-reverse" : ""
+        }`}
+      >
+        <View
+          className={`flex-1 ${isRTL ? "items-end" : "items-start"} justify-center`}
+        >
+          <Text
+            className={`text-xl font-bold text-gray-800 ${
+              isRTL ? "text-right" : "text-left"
+            }`}
+          >
+            {t("cityPulse")}
+          </Text>
+          {userProfile && (
+            <Text
+              className={`text-sm text-gray-500 ${
+                isRTL ? "text-right" : "text-left"
+              }`}
+            >
+              {`Welcome back, ${userProfile.displayName || user?.email || ""}`}
+            </Text>
+          )}
+        </View>
+        <LanguageToggle />
       </View>
 
-      <View style={styles.searchContainer}>
+      {/* 🔍 Search */}
+      <View className="p-4">
         <SearchBar
           searchQuery={searchQuery}
           city={city}
@@ -140,132 +137,66 @@ export default function HomeScreen() {
         />
       </View>
 
+      {/* 🛑 Error */}
       {error && (
-        <View style={styles.errorBox}>
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity style={styles.errorButton} onPress={handleLoadSampleData}>
-            <Text style={styles.errorButtonText}>{t("loadSampleEvents")}</Text>
+        <View
+          className={`bg-red-100 p-4 rounded-xl mx-4 mb-4 ${
+            isRTL ? "items-end" : "items-start"
+          }`}
+        >
+          <Text className={`text-red-700 mb-2 ${isRTL ? "text-right" : "text-left"}`}>
+            {error}
+          </Text>
+          <TouchableOpacity
+            onPress={handleLoadSampleData}
+            className="bg-blue-500 px-4 py-2 rounded-md"
+          >
+            <Text className="text-white font-medium">{t("loadSampleEvents")}</Text>
           </TouchableOpacity>
         </View>
       )}
 
+      {/* 📋 Events List */}
       <FlatList
         data={events}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <EventCard event={item} onPress={() => handleEventPress(item)} />
         )}
-        contentContainerStyle={styles.flatListContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingBottom: 16,
+          flexGrow: 1,
+          direction: isRTL ? "rtl" : "ltr",
+        }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.5}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={
           !loading && !error && events.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emoji}>🎭</Text>
-              <Text style={styles.emptyText}>{t("noEventsFound")}</Text>
-              <TouchableOpacity style={styles.reloadButton} onPress={handleLoadSampleData}>
-                <Text style={styles.reloadButtonText}>{t("loadEvents")}</Text>
+            <View className="items-center py-12">
+              <Text className="text-5xl mb-4">🎭</Text>
+              <Text
+                className={`text-base text-gray-500 mb-4 ${
+                  isRTL ? "text-right" : "text-center"
+                }`}
+              >
+                {t("noEventsFound")}
+              </Text>
+              <TouchableOpacity
+                onPress={handleLoadSampleData}
+                className="bg-blue-500 px-6 py-3 rounded-xl"
+              >
+                <Text className="text-white font-semibold">{t("loadEvents")}</Text>
               </TouchableOpacity>
             </View>
           ) : null
         }
         showsVerticalScrollIndicator={false}
-        inverted={false}
       />
     </SafeAreaView>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f9fafb",
-    direction: isRTL ? "rtl" : "ltr",
-  },
-  header: {
-    flexDirection: isRTL ? "row-reverse" : "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: "#ffffff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  headingContainer: {
-    alignItems: isRTL ? "flex-end" : "flex-start",
-    justifyContent: "center",
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#1f2937",
-    textAlign: isRTL ? "right" : "left",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#6b7280",
-    textAlign: isRTL ? "right" : "left",
-  },
-  searchContainer: {
-    padding: 16,
-  },
-  errorBox: {
-    backgroundColor: "#fee2e2",
-    padding: 16,
-    borderRadius: 12,
-    marginHorizontal: 16,
-    marginBottom: 16,
-    alignItems: isRTL ? "flex-end" : "flex-start",
-  },
-  errorText: {
-    color: "#991b1b",
-    marginBottom: 8,
-    textAlign: isRTL ? "right" : "left",
-  },
-  errorButton: {
-    alignSelf: isRTL ? "flex-end" : "flex-start",
-    backgroundColor: "#3b82f6",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  errorButtonText: {
-    color: "#ffffff",
-    fontWeight: "500",
-  },
-  flatListContent: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    direction: isRTL ? "rtl" : "ltr",
-  },
-  footer: {
-    paddingVertical: 16,
-  },
-  emptyContainer: {
-    paddingVertical: 48,
-    alignItems: "center",
-  },
-  emoji: {
-    fontSize: 48,
-    marginBottom: 16,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: "#6b7280",
-    marginBottom: 16,
-    textAlign: isRTL ? "right" : "left",
-  },
-  reloadButton: {
-    backgroundColor: "#3b82f6",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  reloadButtonText: {
-    color: "#ffffff",
-    fontWeight: "600",
-  },
-})

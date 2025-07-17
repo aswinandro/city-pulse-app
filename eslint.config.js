@@ -3,9 +3,23 @@ import typescript from "@typescript-eslint/eslint-plugin"
 import typescriptParser from "@typescript-eslint/parser"
 import react from "eslint-plugin-react"
 import reactHooks from "eslint-plugin-react-hooks"
+import reactNative from "eslint-plugin-react-native"
 
+/** @type {import("eslint").Linter.FlatConfig[]} */
 export default [
   js.configs.recommended,
+
+  {
+    ignores: [
+      "node_modules/**",
+      "dist/**",
+      "build/**",
+      ".expo/**",
+      "android/**",
+      "ios/**",
+    ],
+  },
+
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
@@ -22,6 +36,7 @@ export default [
       "@typescript-eslint": typescript,
       react: react,
       "react-hooks": reactHooks,
+      "react-native": reactNative,
     },
     rules: {
       ...typescript.configs.recommended.rules,
@@ -33,8 +48,11 @@ export default [
       "@typescript-eslint/explicit-function-return-type": "off",
       "@typescript-eslint/explicit-module-boundary-types": "off",
       "@typescript-eslint/no-explicit-any": "warn",
-      "@typescript-eslint/prefer-readonly": "error",
+      // "@typescript-eslint/prefer-readonly": "error",
       "@typescript-eslint/prefer-readonly-parameter-types": "off",
+
+      // ✅ Enforce wrapping text in <Text> for React Native
+      "react-native/no-raw-text": "error",
     },
     settings: {
       react: {
