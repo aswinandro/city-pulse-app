@@ -12,7 +12,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#3B82F6"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.citypulse.app",
@@ -21,7 +23,11 @@
       "infoPlist": {
         "NSFaceIDUsageDescription": "Use Face ID to authenticate and access your account securely.",
         "NSLocationWhenInUseUsageDescription": "This app uses location to find events near you.",
-        "UIBackgroundModes": ["background-fetch", "background-processing"]
+        "UIBackgroundModes": [
+          "background-fetch",
+          "background-processing"
+        ],
+        "ExpoLocalization_supportsRTL": true
       }
     },
     "android": {
@@ -40,7 +46,9 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "INTERNET",
-        "ACCESS_NETWORK_STATE"
+        "ACCESS_NETWORK_STATE",
+        "android.permission.USE_BIOMETRIC",
+        "android.permission.USE_FINGERPRINT"
       ]
     },
     "web": {
@@ -68,6 +76,9 @@
       "enableDangerousExperimentalHermes": true,
       "router": {
         "origin": false
+      },
+      "eas": {
+        "projectId": "21c1b833-e63c-43b1-905c-9100d212e181"
       }
     },
     "developmentClient": true

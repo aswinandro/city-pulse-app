@@ -50,7 +50,7 @@ export default function App() {
     const initializeApp = async () => {
       try {
         await seedInitialData()
-        console.log("✅ City Pulse App Initialized with Expo SDK 53 + React Native 0.76.9")
+        console.log("✅ City Pulse App Initialized with Expo SDK 53 + React Native 0.79.5")
       } catch (error) {
         console.error("❌ App initialization failed:", error)
       }
