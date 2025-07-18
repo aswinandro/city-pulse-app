@@ -156,7 +156,7 @@ The app automatically seeds sample events on first launch:
 4. **Search History**: Local AsyncStorage per user
 5. **User Preferences**: Local AsyncStorage per user
 
-## 📊 Screnshots
+## 📊 Screenshots
 
 | iPhone Simultor                            | Home Screen                            | Event Details                                      |
 | ------------------------------------------ | -------------------------------------- | -------------------------------------------------- |
