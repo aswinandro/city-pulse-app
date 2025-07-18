@@ -156,6 +156,11 @@ The app automatically seeds sample events on first launch:
 4. **Search History**: Local AsyncStorage per user
 5. **User Preferences**: Local AsyncStorage per user
 
+| iPhone Simultor                            | Home Screen                            | Event Details                                      |
+| ------------------------------------------ | -------------------------------------- | -------------------------------------------------- |
+| ![Splash](./screenshots/iphone sim.png) | ![Home](./screenshots/home.jpg) |         ![Details](./event.jpg) |
+
+
 ## 🧪 Testing
 
 \`\`\`bash
@@ -220,9 +225,5 @@ The app can be deployed using:
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
-
-
----
 
 **Built with ❤️ using React Native, Expo SDK 53, and modern development practices**
