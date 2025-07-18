@@ -160,7 +160,7 @@ The app automatically seeds sample events on first launch:
 
 | iPhone Simultor                            | Home Screen                            | Event Details                                      |
 | ------------------------------------------ | -------------------------------------- | -------------------------------------------------- |
-| ![Splash](./screenshots/iphonesim.jpg) |   ![Home](./screenshots/home.jpg) |        ![Details](./screenshots/event.jpg) |
+| ![Splash](./screenshots/iphonesim.png) |   ![Home](./screenshots/home.jpg) |        ![Details](./screenshots/event.jpg) |
 
 
 ## 🧪 Testing
