@@ -7,7 +7,6 @@ import {
   Text,
   TouchableOpacity,
   Alert,
-  StyleSheet,
 } from "react-native"
 import { useRouter, Link } from "expo-router"
 import { LinearGradient } from "expo-linear-gradient"
@@ -51,26 +50,50 @@ export default function SignUpScreen() {
   }
 
   return (
-    <View style={[styles.container]}>
+    <View className="flex-1 bg-gray-100 justify-center px-6">
       {/* Header */}
-      <View style={[styles.header, { flexDirection: isRTL ? "row-reverse" : "row" }]}>
+      <View
+        className={`flex-row justify-between px-2 pt-12 mb-6 ${
+          isRTL ? "flex-row-reverse" : ""
+        }`}
+      >
         <View />
         <LanguageToggle />
       </View>
 
       {/* Title */}
-      <View style={[styles.titleContainer, isRTL && styles.alignEnd]}>
-        <Text style={[styles.title, isRTL && styles.rtlText]}>{t("createAccount")}</Text>
-        <Text style={[styles.subtitle, isRTL && styles.rtlText]}>{t("signUpToContinue")}</Text>
+      <View className={`mb-8 ${isRTL ? "items-end" : ""}`}>
+        <Text
+          className={`text-2xl font-bold text-gray-800 mb-1 ${
+            isRTL ? "text-right" : ""
+          }`}
+        >
+          {t("createAccount")}
+        </Text>
+        <Text
+          className={`text-base text-gray-500 ${
+            isRTL ? "text-right" : ""
+          }`}
+        >
+          {t("signUpToContinue")}
+        </Text>
       </View>
 
       {/* Form */}
-      <View style={styles.formContainer}>
+      <View className="space-y-4">
         {/* Full Name */}
         <View>
-          <Text style={[styles.label, isRTL && styles.rtlText]}>{t("fullName")}</Text>
+          <Text
+            className={`text-base text-gray-700 mb-1 ${
+              isRTL ? "text-right" : ""
+            }`}
+          >
+            {t("fullName")}
+          </Text>
           <TextInput
-            style={[styles.input, isRTL && styles.rtlInput]}
+            className={`bg-white py-3 px-4 rounded-lg border border-gray-300 text-base ${
+              isRTL ? "text-right" : "text-left"
+            }`}
             placeholder={t("enterFullName")}
             value={fullName}
             onChangeText={setFullName}
@@ -82,9 +105,17 @@ export default function SignUpScreen() {
 
         {/* Email */}
         <View>
-          <Text style={[styles.label, isRTL && styles.rtlText]}>{t("email")}</Text>
+          <Text
+            className={`text-base text-gray-700 mb-1 ${
+              isRTL ? "text-right" : ""
+            }`}
+          >
+            {t("email")}
+          </Text>
           <TextInput
-            style={[styles.input, isRTL && styles.rtlInput]}
+            className={`bg-white py-3 px-4 rounded-lg border border-gray-300 text-base ${
+              isRTL ? "text-right" : "text-left"
+            }`}
             placeholder={t("enterEmail")}
             value={email}
             onChangeText={setEmail}
@@ -97,9 +128,17 @@ export default function SignUpScreen() {
 
         {/* Password */}
         <View>
-          <Text style={[styles.label, isRTL && styles.rtlText]}>{t("password")}</Text>
+          <Text
+            className={`text-base text-gray-700 mb-1 ${
+              isRTL ? "text-right" : ""
+            }`}
+          >
+            {t("password")}
+          </Text>
           <TextInput
-            style={[styles.input, isRTL && styles.rtlInput]}
+            className={`bg-white py-3 px-4 rounded-lg border border-gray-300 text-base ${
+              isRTL ? "text-right" : "text-left"
+            }`}
             placeholder={t("enterPassword")}
             value={password}
             onChangeText={setPassword}
@@ -111,9 +150,17 @@ export default function SignUpScreen() {
 
         {/* Confirm Password */}
         <View>
-          <Text style={[styles.label, isRTL && styles.rtlText]}>{t("confirmPassword")}</Text>
+          <Text
+            className={`text-base text-gray-700 mb-1 ${
+              isRTL ? "text-right" : ""
+            }`}
+          >
+            {t("confirmPassword")}
+          </Text>
           <TextInput
-            style={[styles.input, isRTL && styles.rtlInput]}
+            className={`bg-white py-3 px-4 rounded-lg border border-gray-300 text-base ${
+              isRTL ? "text-right" : "text-left"
+            }`}
             placeholder={t("enterConfirmPassword")}
             value={confirmPassword}
             onChangeText={setConfirmPassword}
@@ -124,9 +171,11 @@ export default function SignUpScreen() {
         </View>
 
         {/* Submit Button */}
-        <BlurView intensity={30} tint="light" style={styles.backdrop}>
+        <BlurView intensity={30} tint="light" className="mt-6 rounded-xl overflow-hidden">
           <TouchableOpacity
-            style={[styles.button, loading && styles.disabledButton]}
+            className={`rounded-xl overflow-hidden ${
+              loading ? "opacity-60" : ""
+            }`}
             onPress={handleSignUp}
             disabled={loading}
           >
@@ -134,12 +183,14 @@ export default function SignUpScreen() {
               colors={["#d4d4d4", "#a3a3a3"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={styles.gradient}
+              className="py-3.5 items-center rounded-xl"
             >
               {loading ? (
                 <LoadingSpinner color="black" size="small" />
               ) : (
-                <Text style={styles.buttonText}>{t("createAccount")}</Text>
+                <Text className="text-gray-900 font-semibold text-lg">
+                  {t("createAccount")}
+                </Text>
               )}
             </LinearGradient>
           </TouchableOpacity>
@@ -147,10 +198,14 @@ export default function SignUpScreen() {
 
         {/* Sign In Link */}
         <Link href="/auth" asChild>
-          <TouchableOpacity style={[styles.linkContainer, isRTL && styles.alignEnd]}>
-            <Text style={[styles.linkText, isRTL && styles.rtlText]}>
+          <TouchableOpacity className={`mt-6 ${isRTL ? "items-end" : ""}`}>
+            <Text
+              className={`text-base text-gray-600 ${
+                isRTL ? "text-right" : ""
+              }`}
+            >
               {t("alreadyHaveAccount")}
-              <Text style={styles.linkBold}> {t("signIn")}</Text>
+              <Text className="text-gray-900 font-bold"> {t("signIn")}</Text>
             </Text>
           </TouchableOpacity>
         </Link>
@@ -158,92 +213,3 @@ export default function SignUpScreen() {
     </View>
   )
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#f3f4f6",
-    justifyContent: "center",
-    paddingHorizontal: 24,
-  },
-  header: {
-    marginBottom: 24,
-    justifyContent: "space-between",
-    paddingHorizontal: 8,
-    paddingTop: 48,
-  },
-  titleContainer: {
-    marginBottom: 30,
-  },
-  alignEnd: {
-    alignItems: "flex-end",
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "bold",
-    color: "#1f2937",
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#6b7280",
-  },
-  label: {
-    fontSize: 15,
-    color: "#374151",
-    marginBottom: 6,
-  },
-  input: {
-    backgroundColor: "#fff",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    borderColor: "#d1d5db",
-    borderWidth: 1,
-    fontSize: 16,
-  },
-  rtlInput: {
-    textAlign: "right",
-    writingDirection: "rtl",
-  },
-  rtlText: {
-    textAlign: "right",
-  },
-  formContainer: {
-    gap: 16,
-  },
-  button: {
-    marginTop: 32,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  gradient: {
-    paddingVertical: 14,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#111827",
-    fontWeight: "600",
-    fontSize: 17,
-  },
-  disabledButton: {
-    opacity: 0.6,
-  },
-  backdrop: {
-    marginTop: 24,
-    borderRadius: 12,
-    overflow: "hidden",
-  },
-  linkContainer: {
-    marginTop: 24,
-  },
-  linkText: {
-    fontSize: 15,
-    color: "#4b5563",
-  },
-  linkBold: {
-    color: "#111827",
-    fontWeight: "bold",
-  },
-})
