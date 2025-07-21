@@ -1,15 +1,54 @@
 "use client"
 
-import { View, Text, TouchableOpacity, Alert } from "react-native"
+import { View, Text, TouchableOpacity, Alert, Switch } from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { Ionicons } from "@expo/vector-icons"
 import { useAuth } from "../../src/providers/AuthProvider"
 import { useLanguage } from "../../src/hooks/useLanguage"
 import LanguageToggle from "../../src/components/common/LanguageToggle"
+import * as LocalAuthentication from "expo-local-authentication"
+import * as SecureStore from "expo-secure-store"
+import { useEffect, useState } from "react"
 
 export default function ProfileScreen() {
   const { user, userProfile, logout } = useAuth()
   const { t, isRTL } = useLanguage()
+
+  const fingerprintKey = user?.uid ? `fingerprint_enabled_${user.uid}` : null
+  const [isFingerprintEnabled, setIsFingerprintEnabled] = useState(false)
+
+  useEffect(() => {
+    const checkFingerprintSetting = async () => {
+      if (!fingerprintKey) return
+      const saved = await SecureStore.getItemAsync(fingerprintKey)
+      setIsFingerprintEnabled(saved === "true")
+    }
+    checkFingerprintSetting()
+  }, [fingerprintKey])
+
+  const toggleFingerprint = async () => {
+    if (!fingerprintKey) return
+
+    const isAvailable = await LocalAuthentication.hasHardwareAsync()
+    const isEnrolled = await LocalAuthentication.isEnrolledAsync()
+
+    if (!isAvailable || !isEnrolled) {
+      Alert.alert(t("fingerprintNotAvailable"), t("fingerprintSetupFirst"))
+      return
+    }
+
+    const result = await LocalAuthentication.authenticateAsync({
+      promptMessage: t("authenticateToEnable"),
+    })
+
+    if (result.success) {
+      const newValue = !isFingerprintEnabled
+      await SecureStore.setItemAsync(fingerprintKey, newValue.toString())
+      setIsFingerprintEnabled(newValue)
+    } else {
+      Alert.alert(t("authenticationFailed"))
+    }
+  }
 
   const handleLogout = () => {
     Alert.alert(
@@ -62,7 +101,7 @@ export default function ProfileScreen() {
         {userProfile && (
           <View className="bg-white rounded-xl p-4 mb-6">
             <Text className={`text-lg font-semibold text-gray-800 mb-3 ${isRTL ? "text-right" : "text-left"}`}>
-              Your Activity
+              {t("yourActivity")}
             </Text>
             <View className={`flex-row justify-between ${isRTL ? "flex-row-reverse" : ""}`}>
               <View className="items-center">
@@ -81,7 +120,7 @@ export default function ProfileScreen() {
                 <Text className="text-2xl font-bold text-purple-600">
                   {userProfile.stats.eventsViewed}
                 </Text>
-                <Text className="text-sm text-gray-500">Events Viewed</Text>
+                <Text className="text-sm text-gray-500">{t("eventsViewed")}</Text>
               </View>
             </View>
           </View>
@@ -97,6 +136,19 @@ export default function ProfileScreen() {
               </Text>
             </View>
             <LanguageToggle />
+          </View>
+        </View>
+
+        {/* Fingerprint Option */}
+        <View className="bg-white rounded-xl mb-6">
+          <View className={`flex-row items-center justify-between p-4 ${isRTL ? "flex-row-reverse" : ""}`}>
+            <View className={`flex-row items-center ${isRTL ? "flex-row-reverse" : ""}`}>
+              <Ionicons name="finger-print" size={24} color="#6B7280" />
+              <Text className={`text-gray-800 text-base ${isRTL ? "mr-3 text-right" : "ml-3 text-left"}`}>
+                {t("fingerprintLogin")}
+              </Text>
+            </View>
+            <Switch value={isFingerprintEnabled} onValueChange={toggleFingerprint} />
           </View>
         </View>
 

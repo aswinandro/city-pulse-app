@@ -95,8 +95,8 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView className={`flex-1 bg-gray-50 ${isRTL ? "rtl" : "ltr"}`}>
-      {/* 🔁 Header with RTL-aware layout */}
+    <SafeAreaView className="flex-1 bg-gray-50">
+      {/* Header */}
       <View
         className={`flex-row items-center justify-between px-4 py-3 border-b border-gray-200 ${
           isRTL ? "flex-row-reverse" : ""
@@ -125,7 +125,7 @@ export default function HomeScreen() {
         <LanguageToggle />
       </View>
 
-      {/* 🔍 Search */}
+      {/* Search */}
       <View className="p-4">
         <SearchBar
           searchQuery={searchQuery}
@@ -137,7 +137,7 @@ export default function HomeScreen() {
         />
       </View>
 
-      {/* 🛑 Error */}
+      {/* Error Message */}
       {error && (
         <View
           className={`bg-red-100 p-4 rounded-xl mx-4 mb-4 ${
@@ -156,18 +156,21 @@ export default function HomeScreen() {
         </View>
       )}
 
-      {/* 📋 Events List */}
+      {/* Events List */}
       <FlatList
         data={events}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <EventCard event={item} onPress={() => handleEventPress(item)} />
+          <EventCard
+            event={item}
+            onPress={() => handleEventPress(item)}
+            isRTL={isRTL} // ✅ pass isRTL explicitly
+          />
         )}
         contentContainerStyle={{
           paddingHorizontal: 16,
           paddingBottom: 16,
           flexGrow: 1,
-          direction: isRTL ? "rtl" : "ltr",
         }}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />

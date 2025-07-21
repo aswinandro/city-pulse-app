@@ -9,6 +9,7 @@ import { formatDate } from "../../utils/formatters"
 interface EventCardProps {
   readonly event: Event
   readonly onPress: () => void
+   readonly isRTL?: boolean 
 }
 
 export default function EventCard({ event, onPress }: EventCardProps) {

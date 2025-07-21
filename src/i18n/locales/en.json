@@ -42,5 +42,12 @@
   "passwordsDoNotMatch": "Passwords do not match",
   "biometricLoginSuccess": "Biometric login successful",
   "loading": "Loading...",
-  "retry": "Retry"
+  "retry": "Retry",
+  "fingerprintLogin": "Fingerprint Login",
+  "fingerprintNotAvailable": "Biometric authentication is not available",
+  "fingerprintSetupFirst": "Please set up biometrics on your device first.",
+  "authenticateToEnable": "Authenticate to enable fingerprint login",
+  "authenticationFailed": "Authentication failed",
+  "yourActivity": "Your Activity",
+  "eventsViewed": "Events Viewed"
 }
