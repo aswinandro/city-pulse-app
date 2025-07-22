@@ -23,6 +23,7 @@ export default function HomeScreen() {
   const [city, setCity] = useState("")
   const [refreshing, setRefreshing] = useState(false)
   const [initialLoaded, setInitialLoaded] = useState(false)
+  const [sortMode, setSortMode] = useState<"all" | "even">("all")
 
   const { events, loading, searchEvents, error, loadDefaultEvents, loadMoreEvents } = useEvents()
   const { t, isRTL } = useLanguage()
@@ -94,6 +95,22 @@ export default function HomeScreen() {
     })
   }
 
+  const getDisplayedEvents = () => {
+    // Attach original index to each event
+    const indexedEvents = events.map((event, idx) => ({
+      ...event,
+      originalIndex: idx,
+    }))
+
+    if (sortMode === "even") {
+      return indexedEvents.filter((event) => event.originalIndex % 2 === 0)
+    }
+
+    return indexedEvents
+  }
+
+  const displayedEvents = getDisplayedEvents()
+
   return (
     <SafeAreaView className="flex-1 bg-gray-50">
       {/* Header */}
@@ -137,6 +154,26 @@ export default function HomeScreen() {
         />
       </View>
 
+      {/* Sort Buttons */}
+      <View className="flex-row justify-evenly px-4 mb-3 space-x-2">
+        <TouchableOpacity
+          onPress={() => setSortMode("even")}
+          className={`flex-1 py-2 rounded-md ${
+            sortMode === "even" ? "bg-gray-700" : "bg-gray-500"
+          }`}
+        >
+          <Text className="text-white text-center font-medium">Even Index</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => setSortMode("all")}
+          className={`flex-1 py-2 rounded-md ${
+            sortMode === "all" ? "bg-gray-700" : "bg-gray-500"
+          }`}
+        >
+          <Text className="text-white text-center font-medium">Reset</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Error Message */}
       {error && (
         <View
@@ -158,13 +195,14 @@ export default function HomeScreen() {
 
       {/* Events List */}
       <FlatList
-        data={events}
+        data={displayedEvents}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <EventCard
             event={item}
             onPress={() => handleEventPress(item)}
-            isRTL={isRTL} // ✅ pass isRTL explicitly
+            isRTL={isRTL}
+            index={item.originalIndex} // ✅ show real position
           />
         )}
         contentContainerStyle={{

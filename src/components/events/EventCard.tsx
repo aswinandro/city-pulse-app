@@ -9,12 +9,13 @@ import { formatDate } from "../../utils/formatters"
 interface EventCardProps {
   readonly event: Event
   readonly onPress: () => void
-   readonly isRTL?: boolean 
+  readonly isRTL?: boolean
+  readonly index:  number
 }
 
-export default function EventCard({ event, onPress }: EventCardProps) {
+export default function EventCard({ event, onPress, index, isRTL }: EventCardProps) {
   const { favorites, toggleFavorite } = useFavorites()
-  const { t, isRTL } = useLanguage()
+  const { t } = useLanguage()
   const [imageError, setImageError] = useState(false)
 
   const isFavorite = favorites.some((fav) => fav.id === event.id)
@@ -41,6 +42,11 @@ export default function EventCard({ event, onPress }: EventCardProps) {
           </View>
         )}
 
+        {/* Index Tag */}
+        <View className="absolute top-3 left-3 bg-black/60 px-2 py-1 rounded-md">
+          <Text className="text-white text-xs font-bold">#{index}</Text>
+        </View>
+
         {/* Favorite Icon */}
         <TouchableOpacity
           onPress={() => toggleFavorite(event)}
@@ -56,7 +62,6 @@ export default function EventCard({ event, onPress }: EventCardProps) {
 
       {/* Details */}
       <View className={`p-4 ${isRTL ? "rtl" : "ltr"}`}>
-        {/* Title */}
         <Text
           numberOfLines={2}
           className={`text-lg font-semibold text-gray-800 mb-3 ${isRTL ? "text-right" : "text-left"}`}
@@ -108,14 +113,10 @@ export default function EventCard({ event, onPress }: EventCardProps) {
             {event.classifications.slice(0, 2).map((classification, idx) => (
               <View
                 key={idx}
-                className={`bg-gray-100 px-2 py-1 rounded-full ${
-                  isRTL ? "ml-1" : "mr-1"
-                }`}
+                className={`bg-gray-100 px-2 py-1 rounded-full ${isRTL ? "ml-1" : "mr-1"}`}
               >
                 <Text
-                  className={`text-xs text-gray-700 font-medium ${
-                    isRTL ? "text-right" : "text-left"
-                  }`}
+                  className={`text-xs text-gray-700 font-medium ${isRTL ? "text-right" : "text-left"}`}
                 >
                   {classification.segment?.name || classification.genre?.name}
                 </Text>

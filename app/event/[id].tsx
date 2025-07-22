@@ -1,11 +1,18 @@
 "use client"
 
-import { useState } from "react"
-import { View, Text, ScrollView, Image, TouchableOpacity, Linking } from "react-native"
+import { useState, useEffect } from "react"
+import {
+  View,
+  Text,
+  ScrollView,
+  Image,
+  TouchableOpacity,
+  Linking,
+  Platform,
+} from "react-native"
 import { SafeAreaView } from "react-native-safe-area-context"
 import { useLocalSearchParams, useRouter } from "expo-router"
 import { Ionicons } from "@expo/vector-icons"
-import MapView, { Marker } from "react-native-maps"
 import { useFavorites } from "../../src/hooks/useFavorites"
 import { useLanguage } from "../../src/hooks/useLanguage"
 import type { Event } from "../../src/types/Event"
@@ -17,6 +24,7 @@ export default function EventDetailScreen() {
   const { favorites, toggleFavorite } = useFavorites()
   const { t, isRTL } = useLanguage()
   const [imageError, setImageError] = useState(false)
+  const [MapComponents, setMapComponents] = useState<any>(null)
   const router = useRouter()
 
   const isFavorite = favorites.some((fav) => fav.id === event.id)
@@ -30,6 +38,17 @@ export default function EventDetailScreen() {
     location &&
     !isNaN(Number.parseFloat(location.latitude)) &&
     !isNaN(Number.parseFloat(location.longitude))
+
+  // 🔁 Dynamically load MapView and Marker only on native platforms
+  useEffect(() => {
+    if (Platform.OS !== "web") {
+      const loadMap = async () => {
+        const { default: MapView, Marker } = await import("react-native-maps")
+        setMapComponents({ MapView, Marker })
+      }
+      loadMap()
+    }
+  }, [])
 
   return (
     <SafeAreaView className={`flex-1 bg-white ${isRTL ? "rtl" : "ltr"}`}>
@@ -136,14 +155,14 @@ export default function EventDetailScreen() {
             </View>
           )}
 
-          {/* Location Map */}
-          {isValidLocation && (
+          {/* Location Map (Native Only) */}
+          {isValidLocation && MapComponents && (
             <View className="mb-6">
               <Text className={`text-lg font-semibold text-gray-800 mb-3 w-full ${isRTL ? "text-right" : "text-left"}`}>
                 {t("location")}
               </Text>
               <View className="h-48 rounded-lg overflow-hidden border border-gray-200">
-                <MapView
+                <MapComponents.MapView
                   style={{ flex: 1 }}
                   initialRegion={{
                     latitude: Number(location.latitude),
@@ -152,7 +171,7 @@ export default function EventDetailScreen() {
                     longitudeDelta: 0.01,
                   }}
                 >
-                  <Marker
+                  <MapComponents.Marker
                     coordinate={{
                       latitude: Number(location.latitude),
                       longitude: Number(location.longitude),
@@ -160,7 +179,7 @@ export default function EventDetailScreen() {
                     title={venue?.name}
                     description={venue?.address?.line1}
                   />
-                </MapView>
+                </MapComponents.MapView>
               </View>
               {venue?.address?.line1 && (
                 <Text className={`text-gray-600 text-sm mt-2 w-full ${isRTL ? "text-right" : "text-left"}`}>
