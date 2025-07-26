@@ -18,7 +18,16 @@
         "buildType": "apk"
       },
       "autoIncrement": true,
-      "channel": "production"
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyCEhZE2hD7mWtwao1U65BU_W66LMA-oppU",
+        "EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN": "city-pulse-67fbe.firebaseapp.com",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "city-pulse-67fbe",
+        "EXPO_PUBLIC_FIREBASE_STORAGE_BUCKET": "city-pulse-67fbe.firebasestorage.app",
+        "EXPO_PUBLIC_FIREBASE_MESSAGING_SENDER_ID": "440423622175",
+        "EXPO_PUBLIC_FIREBASE_APP_ID": "1:440423622175:web:70e350874c6a8fae92972a",
+        "EXPO_PUBLIC_TICKETMASTER_API_KEY": "TsCCpN46uYoXveLa6IV7ApV6APV2JuWR"
+      }
     }
   },
   "submit": {
