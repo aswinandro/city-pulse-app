@@ -6,40 +6,31 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
-    "newArchEnabled": true,
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#3B82F6"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.citypulse.app",
       "buildNumber": "1",
-      "deploymentTarget": "13.4",
       "infoPlist": {
         "NSFaceIDUsageDescription": "Use Face ID to authenticate and access your account securely.",
         "NSLocationWhenInUseUsageDescription": "This app uses location to find events near you.",
-        "UIBackgroundModes": [
-          "background-fetch",
-          "background-processing"
-        ],
-        "ExpoLocalization_supportsRTL": true
+        "UIBackgroundModes": ["background-fetch", "background-processing"],
+        "ExpoLocalization_supportsRTL": true,
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/splash.png",
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#3B82F6"
       },
       "package": "com.citypulse.app",
       "versionCode": 1,
-      "compileSdkVersion": 34,
-      "targetSdkVersion": 34,
-      "minSdkVersion": 23,
       "permissions": [
         "USE_FINGERPRINT",
         "USE_BIOMETRIC",
@@ -63,14 +54,14 @@
         {
           "supportsRTL": true
         }
-      ]
+      ],
+      "expo-build-properties"
     ],
     "experiments": {
       "typedRoutes": true,
       "turboModules": true
     },
     "scheme": "city-pulse",
-    "deepLinking": true,
     "jsEngine": "hermes",
     "extra": {
       "enableDangerousExperimentalHermes": true,
@@ -79,8 +70,22 @@
       },
       "eas": {
         "projectId": "21c1b833-e63c-43b1-905c-9100d212e181"
-      }
+      },
+      "firebase": {
+        "apiKey": "AIzaSyCEhZE2hD7mWtwao1U65BU_W66LMA-oppU",
+        "authDomain": "city-pulse-67fbe.firebaseapp.com",
+        "projectId": "city-pulse-67fbe",
+        "storageBucket": "city-pulse-67fbe.appspot.com",
+        "messagingSenderId": "440423622175",
+        "appId": "1:440423622175:web:70e350874c6a8fae92972a"
+      },
+      "ticketmasterApiKey": "TsCCpN46uYoXveLa6IV7ApV6APV2JuWR"
     },
-    "developmentClient": true
+    "developmentClient": {},
+    "runtimeVersion": "1.0.0",
+    "updates": {
+      "url": "https://u.expo.dev/21c1b833-e63c-43b1-905c-9100d212e181"
+    },
+    "owner": "andro5"
   }
 }
