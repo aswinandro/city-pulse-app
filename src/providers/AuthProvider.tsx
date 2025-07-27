@@ -1,27 +1,20 @@
 "use client"
 
 import type { ReactNode } from "react"
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-} from "react"
+import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { Alert } from "react-native"
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  getIdToken,
   type User,
 } from "firebase/auth"
 import { auth } from "../services/firebase"
 import { StorageService } from "../services/StorageService"
-import * as SecureStore from "expo-secure-store"
 import type { UserProfile } from "../types/User"
 
+// Export the interface so it can be imported by other files
 export interface AuthContextType {
   readonly user: User | null
   readonly userProfile: UserProfile | null
@@ -51,7 +44,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
-  const [authChecked, setAuthChecked] = useState(false)
 
   const loadUserProfile = useCallback(async (uid: string) => {
     try {
@@ -67,29 +59,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [])
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    console.log("🔄 Setting up auth state listener...")
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       try {
-        if (firebaseUser) {
-          const token = await getIdToken(firebaseUser, true)
-          if (!token) {
-            throw new Error("Invalid Firebase token.")
-          }
+        console.log("🔄 Auth state changed:", user ? `User: ${user.email}` : "No user")
 
-          setUser(firebaseUser)
-          await loadUserProfile(firebaseUser.uid)
+        if (user) {
+          console.log("✅ User authenticated, loading profile...")
+          setUser(user)
+          await loadUserProfile(user.uid)
         } else {
+          console.log("❌ No user, clearing all data...")
           setUser(null)
           setUserProfile(null)
         }
       } catch (error) {
-        console.error("❌ Invalid auth state:", error)
-        setUser(null)
-        setUserProfile(null)
-        await SecureStore.deleteItemAsync("firebaseCredentials")
-        Alert.alert("Session Error", "Authentication failed. Please sign in again.")
+        console.error("❌ Error in auth state change:", error)
+        Alert.alert("Authentication Error", "There was an issue with authentication. Please restart the app.")
       } finally {
         setLoading(false)
-        setAuthChecked(true)
       }
     })
 
@@ -98,11 +86,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signIn = useCallback(async (email: string, password: string) => {
     try {
+      console.log("🔄 Attempting to sign in user:", email)
       setLoading(true)
+
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      console.log("✅ Sign in successful:", userCredential.user.email)
 
-      await SecureStore.setItemAsync("firebaseCredentials", JSON.stringify({ email, password }))
-
+      // Update last login time
       const existingProfile = await StorageService.getUserData<UserProfile>(userCredential.user.uid)
       if (existingProfile) {
         const updatedProfile: UserProfile = {
@@ -111,20 +101,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
         await StorageService.setUserData(userCredential.user.uid, updatedProfile)
       }
-    } catch (error) {
-      console.error("❌ Sign in failed:", error)
-      await SecureStore.deleteItemAsync("firebaseCredentials")
 
+      // The auth state change will handle the rest
+    } catch (error: unknown) {
+      console.error("❌ Sign in failed:", error)
       let errorMessage = "Failed to sign in. Please try again."
+
       if (error instanceof Error) {
         if (error.message.includes("user-not-found")) {
-          errorMessage = "No account found with this email."
+          errorMessage = "No account found with this email address."
         } else if (error.message.includes("wrong-password")) {
-          errorMessage = "Incorrect password."
+          errorMessage = "Incorrect password. Please try again."
         } else if (error.message.includes("invalid-email")) {
-          errorMessage = "Invalid email format."
+          errorMessage = "Please enter a valid email address."
         } else if (error.message.includes("too-many-requests")) {
-          errorMessage = "Too many attempts. Try again later."
+          errorMessage = "Too many failed attempts. Please try again later."
         }
       }
 
@@ -137,13 +128,15 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signUp = useCallback(async (email: string, password: string, displayName: string) => {
     try {
+      console.log("🔄 Attempting to sign up user:", email)
       setLoading(true)
 
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-      await SecureStore.setItemAsync("firebaseCredentials", JSON.stringify({ email, password }))
+      const user = userCredential.user
+      console.log("✅ Sign up successful:", user.email)
 
       const newUserProfile: UserProfile = {
-        uid: userCredential.user.uid,
+        uid: user.uid,
         email,
         displayName,
         createdAt: new Date().toISOString(),
@@ -160,22 +153,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
         },
       }
 
-      await StorageService.setUserData(userCredential.user.uid, newUserProfile)
+      await StorageService.setUserData(user.uid, newUserProfile)
       setUserProfile(newUserProfile)
 
       Alert.alert("Welcome!", `Account created successfully for ${displayName}!`)
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("❌ Sign up failed:", error)
-      await SecureStore.deleteItemAsync("firebaseCredentials")
+      let errorMessage = "Failed to create account. Please try again."
 
-      let errorMessage = "Failed to create account."
       if (error instanceof Error) {
         if (error.message.includes("email-already-in-use")) {
-          errorMessage = "Email already in use."
+          errorMessage = "An account with this email already exists."
         } else if (error.message.includes("weak-password")) {
-          errorMessage = "Password should be at least 6 characters."
+          errorMessage = "Password should be at least 6 characters long."
         } else if (error.message.includes("invalid-email")) {
-          errorMessage = "Please enter a valid email."
+          errorMessage = "Please enter a valid email address."
         }
       }
 
@@ -186,45 +178,55 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [])
 
-  const updateUserProfile = useCallback(async (updates: Partial<UserProfile>) => {
-    if (!user || !userProfile) return
-    try {
-      const updated = { ...userProfile, ...updates }
-      await StorageService.setUserData(user.uid, updated)
-      setUserProfile(updated)
-    } catch (error) {
-      console.error("Update failed:", error)
-      Alert.alert("Update Failed", "Could not update your profile.")
-      throw error
-    }
-  }, [user, userProfile])
+  const updateUserProfile = useCallback(
+    async (updates: Partial<UserProfile>) => {
+      if (!user || !userProfile) return
+
+      try {
+        const updatedProfile: UserProfile = { ...userProfile, ...updates }
+        await StorageService.setUserData(user.uid, updatedProfile)
+        setUserProfile(updatedProfile)
+      } catch (error) {
+        console.error("Error updating user profile:", error)
+        Alert.alert("Update Failed", "Failed to update profile. Please try again.")
+        throw error
+      }
+    },
+    [user, userProfile],
+  )
 
   const logout = useCallback(async () => {
     try {
+      console.log("🔄 Logging out user...")
       setLoading(true)
+
+      // Clear local state first
       setUser(null)
       setUserProfile(null)
-      await SecureStore.deleteItemAsync("firebaseCredentials")
+
+      // Sign out from Firebase
       await signOut(auth)
-      Alert.alert("Logged Out", "Successfully logged out.")
-    } catch (error) {
-      console.error("Logout failed:", error)
-      Alert.alert("Logout Failed", "An error occurred during logout.")
-      throw error
+
+      console.log("✅ Logout successful")
+      Alert.alert("Logged Out", "You have been successfully logged out.")
+    } catch (error: unknown) {
+      console.error("❌ Logout failed:", error)
+      const errorMessage = error instanceof Error ? error.message : "Logout failed"
+      Alert.alert("Logout Failed", "Failed to logout. Please try again.")
+      throw new Error(errorMessage)
     } finally {
       setLoading(false)
     }
   }, [])
 
   const checkAuthState = useCallback(() => {
-    setAuthChecked(true)
     setLoading(false)
   }, [])
 
   const value: AuthContextType = {
     user,
     userProfile,
-    loading: !authChecked || loading,
+    loading,
     signIn,
     signUp,
     logout,
