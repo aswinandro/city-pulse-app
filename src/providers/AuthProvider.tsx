@@ -3,6 +3,7 @@
 import type { ReactNode } from "react"
 import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { Alert } from "react-native"
+import AsyncStorage from "@react-native-async-storage/async-storage"
 import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
@@ -58,30 +59,45 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [])
 
+  // 🚨 New: Detect first install and sign out
   useEffect(() => {
-    console.log("🔄 Setting up auth state listener...")
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const checkFreshInstallAndSetupAuth = async () => {
       try {
-        console.log("🔄 Auth state changed:", user ? `User: ${user.email}` : "No user")
-
-        if (user) {
-          console.log("✅ User authenticated, loading profile...")
-          setUser(user)
-          await loadUserProfile(user.uid)
-        } else {
-          console.log("❌ No user, clearing all data...")
-          setUser(null)
-          setUserProfile(null)
+        const hasLaunched = await AsyncStorage.getItem("hasLaunched")
+        if (!hasLaunched) {
+          console.log("🆕 Fresh install detected. Forcing logout...")
+          await signOut(auth)
+          await AsyncStorage.setItem("hasLaunched", "true")
         }
+
+        console.log("🔄 Setting up auth state listener...")
+        const unsubscribe = onAuthStateChanged(auth, async (user) => {
+          try {
+            console.log("🔄 Auth state changed:", user ? `User: ${user.email}` : "No user")
+
+            if (user) {
+              setUser(user)
+              await loadUserProfile(user.uid)
+            } else {
+              setUser(null)
+              setUserProfile(null)
+            }
+          } catch (error) {
+            console.error("❌ Error in auth state change:", error)
+            Alert.alert("Authentication Error", "There was an issue with authentication. Please restart the app.")
+          } finally {
+            setLoading(false)
+          }
+        })
+
+        return unsubscribe
       } catch (error) {
-        console.error("❌ Error in auth state change:", error)
-        Alert.alert("Authentication Error", "There was an issue with authentication. Please restart the app.")
-      } finally {
+        console.error("❌ Error during app startup:", error)
         setLoading(false)
       }
-    })
+    }
 
-    return unsubscribe
+    checkFreshInstallAndSetupAuth()
   }, [loadUserProfile])
 
   const signIn = useCallback(async (email: string, password: string) => {
@@ -92,7 +108,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       console.log("✅ Sign in successful:", userCredential.user.email)
 
-      // Update last login time
       const existingProfile = await StorageService.getUserData<UserProfile>(userCredential.user.uid)
       if (existingProfile) {
         const updatedProfile: UserProfile = {
@@ -101,8 +116,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
         }
         await StorageService.setUserData(userCredential.user.uid, updatedProfile)
       }
-
-      // The auth state change will handle the rest
     } catch (error: unknown) {
       console.error("❌ Sign in failed:", error)
       let errorMessage = "Failed to sign in. Please try again."
@@ -200,11 +213,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.log("🔄 Logging out user...")
       setLoading(true)
 
-      // Clear local state first
       setUser(null)
       setUserProfile(null)
-
-      // Sign out from Firebase
       await signOut(auth)
 
       console.log("✅ Logout successful")
