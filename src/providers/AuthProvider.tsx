@@ -15,7 +15,7 @@ import { auth } from "../services/firebase"
 import { StorageService } from "../services/StorageService"
 import type { UserProfile } from "../types/User"
 
-// Export the interface so it can be imported by other files
+// Export interface
 export interface AuthContextType {
   readonly user: User | null
   readonly userProfile: UserProfile | null
@@ -59,45 +59,59 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [])
 
-  // 🚨 New: Detect first install and sign out
+  // Wrap first onAuthStateChanged event into a Promise
+  const waitForFirstAuthState = (): Promise<User | null> => {
+    return new Promise((resolve) => {
+      const unsubscribe = onAuthStateChanged(auth, (user) => {
+        unsubscribe()
+        resolve(user)
+      })
+    })
+  }
+
   useEffect(() => {
+    let isMounted = true
+
     const checkFreshInstallAndSetupAuth = async () => {
       try {
+        // Check if app launched before
         const hasLaunched = await AsyncStorage.getItem("hasLaunched")
+
+        // If fresh install, force sign out
         if (!hasLaunched) {
-          console.log("🆕 Fresh install detected. Forcing logout...")
+          console.log("🆕 Fresh install detected. Signing out user (if any)...")
           await signOut(auth)
           await AsyncStorage.setItem("hasLaunched", "true")
         }
 
-        console.log("🔄 Setting up auth state listener...")
-        const unsubscribe = onAuthStateChanged(auth, async (user) => {
-          try {
-            console.log("🔄 Auth state changed:", user ? `User: ${user.email}` : "No user")
+        if (!isMounted) return
 
-            if (user) {
-              setUser(user)
-              await loadUserProfile(user.uid)
-            } else {
-              setUser(null)
-              setUserProfile(null)
-            }
-          } catch (error) {
-            console.error("❌ Error in auth state change:", error)
-            Alert.alert("Authentication Error", "There was an issue with authentication. Please restart the app.")
-          } finally {
-            setLoading(false)
-          }
-        })
+        // Wait for the first auth state change event
+        console.log("🔄 Waiting for first auth state event...")
+        const firebaseUser = await waitForFirstAuthState()
 
-        return unsubscribe
+        if (!isMounted) return
+
+        if (firebaseUser) {
+          setUser(firebaseUser)
+          await loadUserProfile(firebaseUser.uid)
+        } else {
+          setUser(null)
+          setUserProfile(null)
+        }
       } catch (error) {
         console.error("❌ Error during app startup:", error)
-        setLoading(false)
+        Alert.alert("Startup Error", "An error occurred during app startup.")
+      } finally {
+        if (isMounted) setLoading(false)
       }
     }
 
     checkFreshInstallAndSetupAuth()
+
+    return () => {
+      isMounted = false
+    }
   }, [loadUserProfile])
 
   const signIn = useCallback(async (email: string, password: string) => {
