@@ -1,7 +1,6 @@
 "use client"
 
-import type { ReactNode } from "react"
-import { createContext, useContext, useEffect, useState, useCallback } from "react"
+import { ReactNode, createContext, useContext, useEffect, useState, useCallback } from "react"
 import { Alert } from "react-native"
 import AsyncStorage from "@react-native-async-storage/async-storage"
 import {
@@ -30,9 +29,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext)
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider")
-  }
+  if (!context) throw new Error("useAuth must be used within an AuthProvider")
   return context
 }
 
@@ -45,7 +42,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Load profile from storage
   const loadUserProfile = useCallback(async (uid: string) => {
     try {
       const profile = await StorageService.getUserData<UserProfile>(uid)
@@ -55,53 +51,46 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     } catch (error) {
       console.error("❌ Error loading user profile:", error)
-      Alert.alert("Error", "Failed to load user profile. Please try again.")
+      Alert.alert("Error", "Failed to load user profile.")
     }
   }, [])
-
-  // Wait for first onAuthStateChanged event (promise wrapper)
-  const waitForFirstAuthState = (): Promise<User | null> => {
-    return new Promise((resolve) => {
-      const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-        unsubscribe()
-        resolve(firebaseUser)
-      })
-    })
-  }
 
   useEffect(() => {
     let isMounted = true
 
     const initializeAuth = async () => {
       try {
-        const hasLaunched = await AsyncStorage.getItem("hasLaunched")
+        const isFirstInstall = await AsyncStorage.getItem("firstInstallDone")
 
-        // If first launch, force sign-out to show login screen
-        if (!hasLaunched) {
-          console.log("🆕 Fresh install detected. Forcing sign-out...")
+        if (!isFirstInstall) {
+          console.log("🆕 First install — forcing logout")
           await signOut(auth)
-          await AsyncStorage.setItem("hasLaunched", "true")
-        }
-
-        console.log("🔍 Waiting for Firebase auth state...")
-        const firebaseUser = await waitForFirstAuthState()
-
-        if (!isMounted) return
-
-        if (firebaseUser) {
-          console.log("✅ Authenticated user found:", firebaseUser.email)
-          setUser(firebaseUser)
-          await loadUserProfile(firebaseUser.uid)
-        } else {
-          console.log("👤 No authenticated user.")
+          await AsyncStorage.setItem("firstInstallDone", "true")
           setUser(null)
           setUserProfile(null)
+          setLoading(false)
+          return
         }
+
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+          unsubscribe()
+          if (!isMounted) return
+
+          if (firebaseUser) {
+            console.log("✅ Firebase auth state found:", firebaseUser.email)
+            setUser(firebaseUser)
+            await loadUserProfile(firebaseUser.uid)
+          } else {
+            console.log("👤 No user found")
+            setUser(null)
+            setUserProfile(null)
+          }
+          setLoading(false)
+        })
       } catch (error) {
-        console.error("❌ Auth init failed:", error)
-        Alert.alert("Startup Error", "Authentication initialization failed.")
-      } finally {
-        if (isMounted) setLoading(false)
+        console.error("❌ Auth initialization failed:", error)
+        Alert.alert("Startup Error", "Failed to initialize authentication.")
+        setLoading(false)
       }
     }
 
@@ -112,12 +101,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [loadUserProfile])
 
-  // Sign in user and load profile
   const signIn = useCallback(async (email: string, password: string) => {
     try {
       setLoading(true)
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      const loggedInUser = userCredential.user
+      const { user: loggedInUser } = await signInWithEmailAndPassword(auth, email, password)
       setUser(loggedInUser)
 
       const profile = await StorageService.getUserData<UserProfile>(loggedInUser.uid)
@@ -130,6 +117,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setUserProfile(updatedProfile)
       }
     } catch (error: any) {
+      console.error("Sign in failed:", error)
       let message = "Failed to sign in."
       if (error.message?.includes("user-not-found")) message = "No account found."
       else if (error.message?.includes("wrong-password")) message = "Wrong password."
@@ -143,12 +131,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [])
 
-  // Sign up new user and create profile
   const signUp = useCallback(async (email: string, password: string, displayName: string) => {
     try {
       setLoading(true)
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-      const newUser = userCredential.user
+      const { user: newUser } = await createUserWithEmailAndPassword(auth, email, password)
       setUser(newUser)
 
       const newProfile: UserProfile = {
@@ -173,6 +159,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUserProfile(newProfile)
       Alert.alert("Welcome!", `Account created for ${displayName}`)
     } catch (error: any) {
+      console.error("Sign up failed:", error)
       let message = "Failed to sign up."
       if (error.message?.includes("email-already-in-use")) message = "Email already in use."
       else if (error.message?.includes("weak-password")) message = "Weak password."
@@ -185,25 +172,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [])
 
-  // Update user profile partially
-  const updateUserProfile = useCallback(
-    async (updates: Partial<UserProfile>) => {
-      if (!user || !userProfile) return
+  const updateUserProfile = useCallback(async (updates: Partial<UserProfile>) => {
+    if (!user || !userProfile) return
 
-      try {
-        const updated = { ...userProfile, ...updates }
-        await StorageService.setUserData(user.uid, updated)
-        setUserProfile(updated)
-      } catch (error) {
-        console.error("Update failed:", error)
-        Alert.alert("Update Failed", "Could not update profile.")
-        throw error
-      }
-    },
-    [user, userProfile],
-  )
+    try {
+      const updated = { ...userProfile, ...updates }
+      await StorageService.setUserData(user.uid, updated)
+      setUserProfile(updated)
+    } catch (error) {
+      console.error("Update failed:", error)
+      Alert.alert("Update Failed", "Could not update profile.")
+    }
+  }, [user, userProfile])
 
-  // Logout user
   const logout = useCallback(async () => {
     try {
       setLoading(true)
