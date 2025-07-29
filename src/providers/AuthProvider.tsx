@@ -64,20 +64,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
       try {
         console.log("🔄 Auth state changed:", user ? `User: ${user.email}` : "No user")
 
+        setUser(user) // Set user state immediately
+
         if (user) {
           console.log("✅ User authenticated, loading profile...")
-          setUser(user)
           await loadUserProfile(user.uid)
         } else {
-          console.log("❌ No user, clearing all data...")
-          setUser(null)
+          console.log("❌ No user, clearing profile...")
           setUserProfile(null)
         }
       } catch (error) {
         console.error("❌ Error in auth state change:", error)
         Alert.alert("Authentication Error", "There was an issue with authentication. Please restart the app.")
       } finally {
-        setLoading(false)
+        setLoading(false) // Set loading to false AFTER user and profile are potentially set
       }
     })
 
@@ -89,20 +89,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.log("🔄 Attempting to sign in user:", email)
       setLoading(true)
 
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      console.log("✅ Sign in successful:", userCredential.user.email)
-
-      // Update last login time
-      const existingProfile = await StorageService.getUserData<UserProfile>(userCredential.user.uid)
-      if (existingProfile) {
-        const updatedProfile: UserProfile = {
-          ...existingProfile,
-          lastLoginAt: new Date().toISOString(),
-        }
-        await StorageService.setUserData(userCredential.user.uid, updatedProfile)
-      }
-
-      // The auth state change will handle the rest
+      await signInWithEmailAndPassword(auth, email, password)
+      console.log("✅ Sign in successful: Firebase auth state will update.")
     } catch (error: unknown) {
       console.error("❌ Sign in failed:", error)
       let errorMessage = "Failed to sign in. Please try again."
@@ -120,9 +108,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       Alert.alert("Sign In Failed", errorMessage)
-      throw new Error(errorMessage)
-    } finally {
       setLoading(false)
+      throw new Error(errorMessage)
     }
   }, [])
 
@@ -155,7 +142,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
       await StorageService.setUserData(user.uid, newUserProfile)
       setUserProfile(newUserProfile)
-
       Alert.alert("Welcome!", `Account created successfully for ${displayName}!`)
     } catch (error: unknown) {
       console.error("❌ Sign up failed:", error)
@@ -172,9 +158,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
 
       Alert.alert("Sign Up Failed", errorMessage)
-      throw new Error(errorMessage)
-    } finally {
       setLoading(false)
+      throw new Error(errorMessage)
     }
   }, [])
 
@@ -200,28 +185,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
       console.log("🔄 Logging out user...")
       setLoading(true)
 
-      // Clear local state first
+      // Clear local state immediately for better UX
       setUser(null)
       setUserProfile(null)
 
       // Sign out from Firebase
       await signOut(auth)
-
       console.log("✅ Logout successful")
-      Alert.alert("Logged Out", "You have been successfully logged out.")
+
+      // Don't show alert during logout as it might interfere with navigation
+      console.log("User has been successfully logged out.")
     } catch (error: unknown) {
       console.error("❌ Logout failed:", error)
       const errorMessage = error instanceof Error ? error.message : "Logout failed"
       Alert.alert("Logout Failed", "Failed to logout. Please try again.")
+
+      // If logout fails, we should restore the previous state
+      // The onAuthStateChanged listener will handle this automatically
       throw new Error(errorMessage)
     } finally {
-      setLoading(false)
+      // Don't set loading to false here - let onAuthStateChanged handle it
+      // This prevents race conditions
     }
   }, [])
 
   const checkAuthState = useCallback(() => {
-    setLoading(false)
-  }, [])
+    // This function is primarily for initial splash screen,
+    // onAuthStateChanged handles continuous state.
+    if (user === null && !loading) {
+      setLoading(false)
+    }
+  }, [user, loading])
 
   const value: AuthContextType = {
     user,

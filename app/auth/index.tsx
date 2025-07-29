@@ -113,10 +113,10 @@ export default function LoginScreen() {
         {/* Titles */}
         <View className="mb-8">
           <Text className={`text-2xl font-bold text-gray-800 mb-1 ${isRTL ? "text-right" : ""}`}>
-            {t("welcome")}
+            {t("welcome")} 
           </Text>
           <Text className={`text-base text-gray-500 ${isRTL ? "text-right" : ""}`}>
-            {t("signInToContinue")}
+            {t("signInToContinue")} - Production Test
           </Text>
         </View>
 

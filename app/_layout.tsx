@@ -1,55 +1,52 @@
 "use client"
 
-import { useEffect, useState } from "react" // Import useState
+import { useEffect, useState } from "react"
 import { Stack } from "expo-router"
 import { StatusBar } from "expo-status-bar"
 import { GestureHandlerRootView } from "react-native-gesture-handler"
 import { I18nextProvider } from "react-i18next"
-import { AuthProvider, useAuth } from "../src/providers/AuthProvider" // Import useAuth
+import { AuthProvider, useAuth } from "../src/providers/AuthProvider"
 import { DataProvider } from "../src/providers/DataProvider"
 import { LanguageProvider } from "../src/providers/LanguageProvider"
 import i18n from "../src/i18n/config"
 import { seedInitialData } from "../src/services/DataSeeder"
-import SplashScreen from "../src/screens/SplashScreen" // Import the new SplashScreen component
+import SplashScreen from "../src/screens/SplashScreen"
 import "../global.css"
 
-// Define a component that wraps the main app logic and uses useAuth
+// Main app navigation logic
 function AppContent() {
   const { user, loading } = useAuth()
-  const [splashAnimationComplete, setSplashAnimationComplete] = useState(false) // State for splash animation
+  const [splashDone, setSplashDone] = useState(false)
 
-  // Log the auth state for debugging
   useEffect(() => {
-    console.log("RootLayout Auth State:", { user: user?.email, loading, splashAnimationComplete })
-  }, [user, loading, splashAnimationComplete])
+    console.log("RootLayout Auth State:", { user: user?.email, loading, splashDone })
+  }, [user, loading, splashDone])
 
-  // Callback from SplashScreen when its animations are done
   const handleSplashAnimationComplete = () => {
-    setSplashAnimationComplete(true)
+    setSplashDone(true)
   }
 
-  // Show splash screen if animations are not complete OR if auth state is still loading
-  if (!splashAnimationComplete || loading) {
+  if (!splashDone || loading) {
     return <SplashScreen onAnimationComplete={handleSplashAnimationComplete} />
   }
 
-  // Once splash animations are complete AND auth state is loaded
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      {user ? (
-        // If user is authenticated, show main tabs and event detail screen
-        <>
-          <Stack.Screen name="(tabs)" />
-          <Stack.Screen name="event/[id]" />
-        </>
-      ) : (
-        // If no user, show authentication screens
-        <Stack.Screen name="auth" />
-      )}
+    <Stack
+      screenOptions={{ headerShown: false }}
+      initialRouteName={user ? "(tabs)" : "auth"}
+    >
+      {/* Main app routes */}
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="event/[id]" />
+
+      {/* Auth screens */}
+      <Stack.Screen name="auth/index" />
+      <Stack.Screen name="auth/signup" />
     </Stack>
   )
 }
 
+// Root layout wrapping all providers
 export default function RootLayout() {
   useEffect(() => {
     const initializeApp = async () => {
@@ -71,7 +68,7 @@ export default function RootLayout() {
           <AuthProvider>
             <DataProvider>
               <StatusBar style="auto" />
-              <AppContent /> {/* Render AppContent inside providers */}
+              <AppContent />
             </DataProvider>
           </AuthProvider>
         </LanguageProvider>
