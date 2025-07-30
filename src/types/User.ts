@@ -18,6 +18,7 @@ export interface UserProfile {
   readonly lastLoginAt: string
   readonly preferences: UserPreferences
   readonly stats: UserStats
+  readonly password?: string;
 }
 
 export interface UserSettings {

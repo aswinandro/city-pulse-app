@@ -6,47 +6,75 @@ import { Ionicons } from "@expo/vector-icons"
 import { useAuth } from "../../src/providers/AuthProvider"
 import { useLanguage } from "../../src/hooks/useLanguage"
 import LanguageToggle from "../../src/components/common/LanguageToggle"
-import * as LocalAuthentication from "expo-local-authentication"
-import * as SecureStore from "expo-secure-store"
 import { useEffect, useState } from "react"
+import { useBiometric } from "../../src/hooks/useBiometric"
+import { StorageService } from "../../src/services/StorageService"
 
 export default function ProfileScreen() {
   const { user, userProfile, logout } = useAuth()
   const { t, isRTL } = useLanguage()
 
-  const fingerprintKey = user?.uid ? `fingerprint_enabled_${user.uid}` : null
+  const {
+    isBiometricAvailable,
+    hasSavedCredentials,
+    authenticateWithBiometrics,
+    saveBiometricCredentials,
+    clearBiometricCredentials,
+    checkBiometricAvailability,
+  } = useBiometric()
+
   const [isFingerprintEnabled, setIsFingerprintEnabled] = useState(false)
 
+  // Ensure biometric status reflects saved state on mount
   useEffect(() => {
-    const checkFingerprintSetting = async () => {
-      if (!fingerprintKey) return
-      const saved = await SecureStore.getItemAsync(fingerprintKey)
-      setIsFingerprintEnabled(saved === "true")
+    const initialize = async () => {
+      await checkBiometricAvailability()
+      const creds = await StorageService.getItem<{ email: string; password: string }>("biometric_credentials")
+
+      if (isBiometricAvailable && creds?.email && creds?.password && user?.email === creds.email) {
+        setIsFingerprintEnabled(true)
+      } else {
+        setIsFingerprintEnabled(false)
+      }
     }
-    checkFingerprintSetting()
-  }, [fingerprintKey])
+
+    initialize()
+  }, [user])
 
   const toggleFingerprint = async () => {
-    if (!fingerprintKey) return
-
-    const isAvailable = await LocalAuthentication.hasHardwareAsync()
-    const isEnrolled = await LocalAuthentication.isEnrolledAsync()
-
-    if (!isAvailable || !isEnrolled) {
+    if (!isBiometricAvailable) {
       Alert.alert(t("fingerprintNotAvailable"), t("fingerprintSetupFirst"))
       return
     }
 
-    const result = await LocalAuthentication.authenticateAsync({
-      promptMessage: t("authenticateToEnable"),
-    })
+    try {
+      const result = await authenticateWithBiometrics()
+      if (!result) {
+        Alert.alert(t("authenticationFailed"))
+        return
+      }
 
-    if (result.success) {
-      const newValue = !isFingerprintEnabled
-      await SecureStore.setItemAsync(fingerprintKey, newValue.toString())
-      setIsFingerprintEnabled(newValue)
-    } else {
-      Alert.alert(t("authenticationFailed"))
+      if (isFingerprintEnabled) {
+        await clearBiometricCredentials()
+        setIsFingerprintEnabled(false)
+        Alert.alert(t("success"), t("fingerprintDisabled"))
+      } else {
+        const creds = await StorageService.getItem<{ email: string; password: string }>("biometric_credentials")
+
+        if (!user?.email || !creds?.password) {
+          Alert.alert(t("missingCredentials"), t("loginFirstToEnableBiometric"))
+          return
+        }
+
+        await saveBiometricCredentials(user.email, creds.password)
+        setIsFingerprintEnabled(true)
+        Alert.alert(t("success"), t("fingerprintEnabled"))
+      }
+
+      await checkBiometricAvailability()
+    } catch (e) {
+      console.error("Fingerprint error:", e)
+      Alert.alert(t("error"), t("somethingWentWrong"))
     }
   }
 
@@ -61,10 +89,9 @@ export default function ProfileScreen() {
           style: "destructive",
           onPress: async () => {
             try {
-              console.log("🔄 User confirmed logout, proceeding...")
               await logout()
-            } catch (error) {
-              console.error("❌ Logout failed:", error)
+            } catch (e) {
+              console.error("Logout error:", e)
             }
           },
         },
@@ -75,16 +102,13 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView className={`flex-1 bg-gray-50 ${isRTL ? "rtl" : "ltr"}`}>
-      {/* Header */}
       <View className="px-4 py-2 bg-white border-b border-gray-200">
         <Text className={`text-2xl font-bold text-gray-800 ${isRTL ? "text-right" : "text-left"}`}>
           {t("profile")}
         </Text>
       </View>
 
-      {/* Content */}
       <View className="flex-1 p-4">
-        {/* User Info */}
         <View className="bg-white rounded-xl p-6 items-center mb-6">
           <View className="w-20 h-20 bg-gray-100 rounded-full items-center justify-center mb-4">
             <Ionicons name="person" size={48} color="#6B7280" />
@@ -97,7 +121,6 @@ export default function ProfileScreen() {
           </Text>
         </View>
 
-        {/* User Stats */}
         {userProfile && (
           <View className="bg-white rounded-xl p-4 mb-6">
             <Text className={`text-lg font-semibold text-gray-800 mb-3 ${isRTL ? "text-right" : "text-left"}`}>
@@ -105,28 +128,21 @@ export default function ProfileScreen() {
             </Text>
             <View className={`flex-row justify-between ${isRTL ? "flex-row-reverse" : ""}`}>
               <View className="items-center">
-                <Text className="text-2xl font-bold text-blue-600">
-                  {userProfile.stats.favoriteEvents}
-                </Text>
+                <Text className="text-2xl font-bold text-blue-600">{userProfile.stats.favoriteEvents}</Text>
                 <Text className="text-sm text-gray-500">{t("favorites")}</Text>
               </View>
               <View className="items-center">
-                <Text className="text-2xl font-bold text-green-600">
-                  {userProfile.stats.searchCount}
-                </Text>
+                <Text className="text-2xl font-bold text-green-600">{userProfile.stats.searchCount}</Text>
                 <Text className="text-sm text-gray-500">{t("searches")}</Text>
               </View>
               <View className="items-center">
-                <Text className="text-2xl font-bold text-purple-600">
-                  {userProfile.stats.eventsViewed}
-                </Text>
+                <Text className="text-2xl font-bold text-purple-600">{userProfile.stats.eventsViewed}</Text>
                 <Text className="text-sm text-gray-500">{t("eventsViewed")}</Text>
               </View>
             </View>
           </View>
         )}
 
-        {/* Language Toggle */}
         <View className="bg-white rounded-xl mb-6">
           <View className={`flex-row items-center justify-between p-4 ${isRTL ? "flex-row-reverse" : ""}`}>
             <View className={`flex-row items-center ${isRTL ? "flex-row-reverse" : ""}`}>
@@ -139,7 +155,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Fingerprint Option */}
         <View className="bg-white rounded-xl mb-6">
           <View className={`flex-row items-center justify-between p-4 ${isRTL ? "flex-row-reverse" : ""}`}>
             <View className={`flex-row items-center ${isRTL ? "flex-row-reverse" : ""}`}>
@@ -152,7 +167,6 @@ export default function ProfileScreen() {
           </View>
         </View>
 
-        {/* Logout Button */}
         <TouchableOpacity
           className={`bg-white rounded-xl p-4 flex-row items-center justify-center border border-red-200 ${isRTL ? "flex-row-reverse" : ""}`}
           onPress={handleLogout}

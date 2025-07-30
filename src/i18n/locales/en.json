@@ -49,5 +49,15 @@
   "authenticateToEnable": "Authenticate to enable fingerprint login",
   "authenticationFailed": "Authentication failed",
   "yourActivity": "Your Activity",
-  "eventsViewed": "Events Viewed"
+  "eventsViewed": "Events Viewed",
+  "notLoggedIn": "Not logged in",
+  "enableFingerprint": "Enable Fingerprint Login",
+  "confirmLogout": "Are you sure you want to logout?",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "enableBiometric": "Enable Biometric Login?",
+  "saveBiometricLoginPrompt": "Would you like to use biometric login for future sessions?",
+  "biometricEnabled": "Biometric login has been enabled",
+  "biometricDisabled": "Biometric login has been disabled",
+  "missingCredentials": "Missing credentials. Please login again to enable biometric login."
 }
