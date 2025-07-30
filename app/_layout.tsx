@@ -13,14 +13,9 @@ import { seedInitialData } from "../src/services/DataSeeder"
 import SplashScreen from "../src/screens/SplashScreen"
 import "../global.css"
 
-// Main app navigation logic
 function AppContent() {
   const { user, loading } = useAuth()
   const [splashDone, setSplashDone] = useState(false)
-
-  useEffect(() => {
-    console.log("RootLayout Auth State:", { user: user?.email, loading, splashDone })
-  }, [user, loading, splashDone])
 
   const handleSplashAnimationComplete = () => {
     setSplashDone(true)
@@ -31,22 +26,19 @@ function AppContent() {
   }
 
   return (
-    <Stack
-      screenOptions={{ headerShown: false }}
-      initialRouteName={user ? "(tabs)" : "auth"}
-    >
-      {/* Main app routes */}
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="event/[id]" />
-
-      {/* Auth screens */}
-      <Stack.Screen name="auth/index" />
-      <Stack.Screen name="auth/signup" />
+    <Stack screenOptions={{ headerShown: false }}>
+      {user ? (
+        <>
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="event/[id]" />
+        </>
+      ) : (
+        <Stack.Screen name="auth" />
+      )}
     </Stack>
   )
 }
 
-// Root layout wrapping all providers
 export default function RootLayout() {
   useEffect(() => {
     const initializeApp = async () => {

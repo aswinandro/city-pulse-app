@@ -81,4 +81,22 @@ export class StorageService {
   static async getAppSettings<T>(): Promise<T | null> {
     return await this.getItem<T>("app_settings")
   }
+
+  // --- New methods for the manual "first app launch" flag ---
+
+  /** Mark that user has seen the sign-in screen at least once */
+  static async setHasSeenSignIn(): Promise<void> {
+    await this.setItem("hasSeenSignIn", true)
+  }
+
+  /** Returns whether the user has seen the sign-in screen */
+  static async getHasSeenSignIn(): Promise<boolean> {
+    const value = await this.getItem<boolean>("hasSeenSignIn")
+    return value === true
+  }
+
+  /** Clear the sign-in seen flag, e.g. on logout */
+  static async clearHasSeenSignIn(): Promise<void> {
+    await this.removeItem("hasSeenSignIn")
+  }
 }

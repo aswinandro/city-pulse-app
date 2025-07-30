@@ -14,7 +14,6 @@ import { auth } from "../services/firebase"
 import { StorageService } from "../services/StorageService"
 import type { UserProfile } from "../types/User"
 
-// Export the interface so it can be imported by other files
 export interface AuthContextType {
   readonly user: User | null
   readonly userProfile: UserProfile | null
@@ -44,7 +43,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null)
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
   const [loading, setLoading] = useState(true)
+  const [firstLaunchChecked, setFirstLaunchChecked] = useState(false)
+  const [hasSeenSignIn, setHasSeenSignIn] = useState<boolean | null>(null)
 
+  // Load user profile from storage
   const loadUserProfile = useCallback(async (uid: string) => {
     try {
       const profile = await StorageService.getUserData<UserProfile>(uid)
@@ -58,38 +60,69 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [])
 
+  // On mount, check the manual "first launch" flag
   useEffect(() => {
-    console.log("🔄 Setting up auth state listener...")
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    const checkHasSeenSignInFlag = async () => {
       try {
-        console.log("🔄 Auth state changed:", user ? `User: ${user.email}` : "No user")
+        const seenFlag = await StorageService.getHasSeenSignIn()
+        setHasSeenSignIn(seenFlag)
+      } catch (error) {
+        console.error("Error reading hasSeenSignIn flag:", error)
+        setHasSeenSignIn(false) // fallback to false if error
+      } finally {
+        setFirstLaunchChecked(true)
+      }
+    }
+    checkHasSeenSignInFlag()
+  }, [])
 
-        setUser(user) // Set user state immediately
+  // Listen for Firebase auth state changes
+  useEffect(() => {
+    if (!firstLaunchChecked) return
 
-        if (user) {
+    console.log("🔄 Setting up auth state listener...")
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      try {
+        console.log("🔄 Auth state changed:", firebaseUser ? `User: ${firebaseUser.email}` : "No user")
+
+        // Logic: If user exists AND user has seen sign-in before, allow auto-login
+        // Else, force logout and show sign-in screen
+        if (firebaseUser && hasSeenSignIn) {
+          setUser(firebaseUser)
           console.log("✅ User authenticated, loading profile...")
-          await loadUserProfile(user.uid)
+          await loadUserProfile(firebaseUser.uid)
         } else {
-          console.log("❌ No user, clearing profile...")
+          // User not authenticated OR first launch -> force sign-out and clear profile
+          if (firebaseUser) {
+            console.log("⚠️ First launch detected or no sign-in flag, signing out user forcibly.")
+            await signOut(auth) // sign out forcibly if user exists but flag false
+          }
+          setUser(null)
           setUserProfile(null)
         }
       } catch (error) {
         console.error("❌ Error in auth state change:", error)
         Alert.alert("Authentication Error", "There was an issue with authentication. Please restart the app.")
       } finally {
-        setLoading(false) // Set loading to false AFTER user and profile are potentially set
+        setLoading(false)
       }
     })
 
     return unsubscribe
-  }, [loadUserProfile])
+  }, [firstLaunchChecked, hasSeenSignIn, loadUserProfile])
 
+  // Sign-in function: on successful login, set the hasSeenSignIn flag true
   const signIn = useCallback(async (email: string, password: string) => {
     try {
       console.log("🔄 Attempting to sign in user:", email)
       setLoading(true)
 
       await signInWithEmailAndPassword(auth, email, password)
+
+      // Mark that user has seen the sign-in screen
+      await StorageService.setHasSeenSignIn()
+      setHasSeenSignIn(true)
+
       console.log("✅ Sign in successful: Firebase auth state will update.")
     } catch (error: unknown) {
       console.error("❌ Sign in failed:", error)
@@ -113,17 +146,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [])
 
+  // Sign-up function
   const signUp = useCallback(async (email: string, password: string, displayName: string) => {
     try {
       console.log("🔄 Attempting to sign up user:", email)
       setLoading(true)
 
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-      const user = userCredential.user
-      console.log("✅ Sign up successful:", user.email)
+      const newUser = userCredential.user
+      console.log("✅ Sign up successful:", newUser.email)
 
       const newUserProfile: UserProfile = {
-        uid: user.uid,
+        uid: newUser.uid,
         email,
         displayName,
         createdAt: new Date().toISOString(),
@@ -140,8 +174,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
         },
       }
 
-      await StorageService.setUserData(user.uid, newUserProfile)
+      await StorageService.setUserData(newUser.uid, newUserProfile)
       setUserProfile(newUserProfile)
+
+      // Mark sign-in screen seen after successful sign-up
+      await StorageService.setHasSeenSignIn()
+      setHasSeenSignIn(true)
+
       Alert.alert("Welcome!", `Account created successfully for ${displayName}!`)
     } catch (error: unknown) {
       console.error("❌ Sign up failed:", error)
@@ -163,6 +202,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [])
 
+  // Update profile
   const updateUserProfile = useCallback(
     async (updates: Partial<UserProfile>) => {
       if (!user || !userProfile) return
@@ -180,6 +220,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     [user, userProfile],
   )
 
+  // Logout clears sign-in flag to force sign-in on next launch
   const logout = useCallback(async () => {
     try {
       console.log("🔄 Logging out user...")
@@ -189,29 +230,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setUser(null)
       setUserProfile(null)
 
+      // Clear manual "hasSeenSignIn" flag
+      await StorageService.clearHasSeenSignIn()
+      setHasSeenSignIn(false)
+
       // Sign out from Firebase
       await signOut(auth)
       console.log("✅ Logout successful")
 
-      // Don't show alert during logout as it might interfere with navigation
       console.log("User has been successfully logged out.")
     } catch (error: unknown) {
       console.error("❌ Logout failed:", error)
       const errorMessage = error instanceof Error ? error.message : "Logout failed"
       Alert.alert("Logout Failed", "Failed to logout. Please try again.")
 
-      // If logout fails, we should restore the previous state
-      // The onAuthStateChanged listener will handle this automatically
       throw new Error(errorMessage)
     } finally {
-      // Don't set loading to false here - let onAuthStateChanged handle it
-      // This prevents race conditions
+      // Let onAuthStateChanged handle loading state reset
     }
   }, [])
 
+  // checkAuthState for splash screen or manual trigger
   const checkAuthState = useCallback(() => {
-    // This function is primarily for initial splash screen,
-    // onAuthStateChanged handles continuous state.
     if (user === null && !loading) {
       setLoading(false)
     }
